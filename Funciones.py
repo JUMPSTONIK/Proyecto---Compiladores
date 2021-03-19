@@ -1,4 +1,5 @@
 import re
+import Clases
 def validadExpresion(expresion):
     try:
         re.compile(expresion)
@@ -19,7 +20,7 @@ def procesandoAlfabeto(expresion,alfabeto, metaCaracteres):
     #vamos a añadir el operador de concatenacion
     for y in range(0,len(expresion)):
         try:
-            if((expresion[y] in alfabeto or expresion[y] == "+" or expresion[y] == "*" or expresion[y] == "?") and (expresion[y+1] in alfabeto or expresion[y+1] == "(")):
+            if((expresion[y] in alfabeto or expresion[y] == "+" or expresion[y] == "*" or expresion[y] == "?" or expresion[y] == ")") and (expresion[y+1] in alfabeto or expresion[y+1] == "(")):
                 parte1 = expresion[:y+1]
                 parte2 = expresion[y+1:]
                 expresion = parte1 + "." +parte2
@@ -73,3 +74,34 @@ def infijoAPosfix(expresion,alfabeto):
     while len(pila) > 1:
         expresionPosfix.append(pila.pop())
     return expresionPosfix
+
+def crearArbol(expresionPosfix, alfabeto, operadores):
+    pila = []
+    for i in expresionPosfix:
+        #print(i)
+        if (i in alfabeto):
+            leaf = Clases.Node(i)
+            #print(i)
+            pila.append(leaf)
+        elif (i in operadores and i != "*" and i != "+" and i != "?"):
+            leaf = Clases.Node(i)
+            L1 = pila.pop()
+            #print(L1.v)
+            L2 = pila.pop()
+            #print(L2.v)
+            leaf.insertLeft(L1)
+            leaf.insertRight(L2)
+            pila.append(leaf)
+        elif( i == "*" or i == "+" or i == "?"):
+            leaf = Clases.Node(i)
+            L1 = pila.pop()
+            #print(L1.v)
+            leaf.insertLeft(L1)
+            pila.append(leaf)
+    return pila.pop()
+
+def printTree(node, level=0):
+    if node != None:
+        printTree(node.l, level + 1)
+        print(' ' * 4 * level + '->', node.v)
+        printTree(node.r, level + 1)

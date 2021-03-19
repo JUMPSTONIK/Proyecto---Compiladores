@@ -10,9 +10,5 @@ class Node:
     def insertRight(self,n):
         self.r = n
 
-def printTree(node, level=0):
-    if node != None:
-        printTree(node.l, level + 1)
-        print(' ' * 4 * level + '->', node.v)
-        printTree(node.r, level + 1)
+
     
