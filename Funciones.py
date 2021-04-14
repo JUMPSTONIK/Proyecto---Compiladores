@@ -356,22 +356,40 @@ def Thompson(expresionPosfix, alfabeto, operadores):
         #print(transiciones)
     return transiciones, estadoFinal, estadoInicial
 
-def crearGrafoDelAutomata(Transiciones):
+def crearGrafoDelAutomata(Transiciones, name,estadosFinales):
     Grafo = "digraph G{\n"
     for key in Transiciones:
         #print(key)
         #print(Transiciones[key])
         for innerKey in Transiciones[key]:
-            graph = str(key) + " -> " + str(Transiciones[key][innerKey] + " [label=" + str(innerKey) + "]\n")
+            graph = str(key) + " -> " + str(Transiciones[key][innerKey]) + " [label=" + str(innerKey) + "]\n"
+            
+            if key in estadosFinales and str(name) == "AFD" and str(key) + " [ style=bold ]" not in Grafo:
+                graph += str(key) + " [ style=bold ]\n"
+            
             #print(innerKey)
             #print(Transiciones[key][innerKey])
             Grafo = str(Grafo) + str(graph)
+    #print(str(name))
+    if str(name) == "AFN":
+        #print("aaaaaaaaaa")
+        Grafo += str(estadosFinales) + " [ style=bold ]\n"
     Grafo = str(Grafo) + "}"
     #print(Grafo)
+    existe = False
     try:
-        remove("demo.dot")
-    except:
-        f = open('demo.dot','a', encoding='utf-8')
+        with open(str(name) + ".dot", 'r') as f:
+            existe = True
+    except FileNotFoundError as e:
+        existe = False
+    
+    if existe == True:
+        remove(str(name) + ".dot")
+        f = open(str(name) + '.dot','a', encoding='utf-8')
+        f.write(str(Grafo))
+        f.close()
+    else:
+        f = open(str(name) + '.dot','a', encoding='utf-8')
         f.write(str(Grafo))
         f.close()
     return Grafo
@@ -697,22 +715,23 @@ def clausuraE2(subconjuntos, alfabeto, estadoFinal, transiciones):
     return subSets, allSubSets, alfa
 
 def printTableOfSubSets(subSets,allSubSets, alfabetoNoe):
-    TheStates = []
+    TheStates = newStates(subSets)
     separacion = 0
     for cont in range(0,len(subSets)):
-        TheStates.append(str(cont))
         if separacion == 0:
             separacion = len(subSets[0])
         elif len(subSets[cont]) > len(subSets[cont - 1]):
             separacion = len(subSets[cont])
     separacion *= 5
-    columnas = " Q " + (" " * separacion)
+    columnas = "    Q " + (" " * separacion)
     for letra in alfabetoNoe:
         columnas = columnas + (" " * round(separacion/2)) + str(letra) + (" " * separacion)
     print(columnas)
+    #columnas = columnas + (" " * round(separacion/2)) + "tipo" + (" " * separacion)
     fila = ""
     cont = 0
-    for uniConjunto in subSets:
+    for state in TheStates:
+        fila = str(state) + "   "
         for unConjunto in range(0,len(alfabetoNoe)+1):
             if cont % (len(alfabetoNoe)+1) == 0:
                 fila += str(allSubSets[cont]) + (" " * separacion)
@@ -731,53 +750,54 @@ def printTableOfSubSets(subSets,allSubSets, alfabetoNoe):
         fila += "\n"
         print(fila)
         fila = ""
-#def Simalation():
-#   estadoTrans = AFN.estadoInicial
-#         listEst = []
-#         listTrans = []
-#         cont = 0
-#         for item in cadena:
-#             if item not in alfabeto:
-#                 print("no se puede procesar esta cadena, ya que no se encuentra uno o varios de sus caracteres en el alfabeto")
-#                 pass
-#             else:
-#                 find = False
-#                 while(find == False):
-#                     print("entre")
-#                     if estadoTrans in AFN.transiciones:
-#                         Estytrans = AFN.transiciones[estadoTrans]
-#                         lista = Funciones.getkeys(Estytrans) 
-#                         print(lista)
-#                         for i in range(0,len(lista)):
-#                             listTrans.append(lista.pop())
-#                         lista = Funciones.getvalues(Estytrans)
-#                         print(lista)
-#                         for i in range(0,len(lista)):
-#                             listEst.append(lista.pop())
-                        
-#                     print("la lista de transiciones es " + str(listTrans))
-#                     print("la lista de estados es " + str(listEst))
-#                     testTrans = listTrans.pop(0)
-#                     print("transicion a testear es " + str(testTrans) + " caracter de cadena es " + str(item))
-#                     if(testTrans == item):
-#                         print("halle transicion correcta")
-#                         find = True
-#                         estadoTrans = listEst.pop(0)
-#                         print("mi nuevo estado es " + str(estadoTrans))
-#                         listEst = []
-#                         listTrans = []
-#                     elif(testTrans == "ε1" or testTrans == "ε2"):
-#                         print("no halle la misma transicion, pero si epsilon")
-#                         print("la lista de transiciones esta asi actualmente " + str(listTrans))
-#                         cont += 1
-                        
-#                         estadoTrans = listEst.pop(0)
-#                         print("siguiente estado a revisar es "+ str(estadoTrans))
-#                     else:
-#                         print("no es el caracter ni epsilon")
-#                         estadoTrans = listEst.pop()
-#                         print("siguiente estado a tratar es " + str(estadoTrans))
-#                     if(cont == 2):
-#                         listEst = []
-#                         listTrans = []
-#                         cont = 0
+
+def newStates(subSets):
+    TheStates = []
+    for cont in range(0,len(subSets)):
+        TheStates.append(str(cont))
+    return TheStates
+
+def newFinalStates(subSets, newStates, estadoFinal):
+    theNewFinalStates = []
+    cont = 0
+    for conjunto in subSets:
+        if estadoFinal in conjunto:
+            theNewFinalStates.append(str(newStates[cont]))
+        cont += 1
+    return theNewFinalStates
+
+def createFDA(subSets, alfabetoNoe, allSubSets):
+    NStates = newStates(subSets)
+    newTransitions = {}
+    cont1 = 1
+    cont2 = 0
+    for uniConjunto in subSets:
+        newTransitions[NStates[cont2]] = {}
+        for item in alfabetoNoe:
+            if allSubSets[cont1] != []:
+                newTransitions[NStates[cont2]][item] = subSets.index(allSubSets[cont1])
+                
+            cont1 += 1
+        cont1 += 1    
+        cont2 += 1
+    return newTransitions
+
+
+def Simulation(newEstadoInicial, newTransitions, cadena, newEstadosFinales):
+    estado = newEstadoInicial
+    print(newTransitions)
+    for item in cadena:
+        #print(str(item))
+        #print(str(newTransitions.keys()))
+        #print(Funciones.getkeys( newTransitions))
+        #print(estado)
+        if str(estado) in getkeys(newTransitions):
+            estado = newTransitions[str(estado)][item]
+            #print(str(estado))
+        else:
+            pass
+    print(newEstadosFinales)
+    if str(estado) in newEstadosFinales:
+        return "La cadena ha sido aceptada"
+    else:
+        return "la cadena no fue aceptada"

@@ -10,11 +10,11 @@ class Node:
     def insertRight(self,n):
         self.r = n
 
-class AFN:
+class Automata:
 
     def __init__(self, estIn, estFin, states, alfabeth, transitions):
         self.estadoInicial = estIn
-        self.estadoFinal = estFin
+        self.estadosFinales = estFin
         self.estados = states
         self.alfabeto = alfabeth
         self.transiciones = transitions
