@@ -1,6 +1,6 @@
+from re import sub
 import Funciones 
 import Clases
-from os import remove
 
 estadoDelWhile = True
 print("Bienvenido al proyecto 1 de compiladores\n")
@@ -9,11 +9,12 @@ while estadoDelWhile:
     metaCaracteres = ["*","+","(",")","|","?","."]
     operadores = ["*","+","|","?","."]
     alfabeto = []
+    alfabetoNoe = []
     expresion = input("ingrese la expresion regular que usara: ")
     print("procederemos a comprobar si la sintaxis de la expresion regular es correcta")
-
-    if Funciones.validadExpresion(expresion):
-        print("¡Si! ¡la espresion esta correctamente escrita! Podemos proseguir")
+    #Funciones.validadExpresion(expresion)
+    if True:
+        print("¡Si! ¡la expresion esta correctamente escrita! Podemos proseguir")
         print("vamos a obtener todos los caracteres unicos de la expresion")
         alfabeto, expresion = Funciones.procesandoAlfabeto(expresion,alfabeto, metaCaracteres)
         print("su alfabeto es el siguiente: " + str(alfabeto))
@@ -25,27 +26,28 @@ while estadoDelWhile:
         #print("Ahora vamos a contruir el arbol binario")   
         #Funciones.printTree(Funciones.crearArbol(expresionPosfix, alfabeto, operadores))
         print("ahora formaremos el automata")
-        Transiciones = Funciones.Thompson(expresionPosfix, alfabeto, operadores)
-        #print(str(Transiciones) + "  estoy fuera de la funcion")
-        print("ya que tenemos el automata a traves de thompson, vamos a graficarlo")
+        transiciones, estadoFinal, estadoInicial = Funciones.Thompson(expresionPosfix, alfabeto, operadores)
+        estados = Funciones.getEstados(transiciones, estadoInicial)
+        estados.append(estadoFinal)
+        print("los estados son: " + str(estados))
+        print("estado inicial es " + str(estadoInicial))
+        print("estado Final es " + str(estadoFinal))
+        print(str(transiciones))
+        AFN = Clases.AFN(estadoInicial, estadoFinal, estados, alfabeto, transiciones)
+        #print("ya que tenemos el automata a traves de thompson, vamos a graficarlo")
+        Grafo = Funciones.crearGrafoDelAutomata(AFN.transiciones)
+        #print("El grafo generado fue hecho en base a esta estructura: \n" + str(Grafo))
+        #print("Ahora que ya tenemos el automata, podemos probar si funciona alguna cadena que ingresemos")
+        #cadena = input("ingrese su cadena a procesar: ")
 
-        Grafo = "digraph G{\n"
-        for key in Transiciones:
-            #print(key)
-            #print(Transiciones[key])
-            for innerKey in Transiciones[key]:
-                graph = str(key) + " -> " + str(Transiciones[key][innerKey] + " [label=" + str(innerKey) + "]\n")
-                #print(innerKey)
-                #print(Transiciones[key][innerKey])
-                Grafo = str(Grafo) + str(graph)
-        Grafo = str(Grafo) + "}"
-        print(Grafo)
-        try:
-            remove("demo.dot")
-        except:
-            f = open('demo.dot','a', encoding='utf-8')
-            f.write(str(Grafo))
-            f.close()
+        subconjuntos = Funciones.clausuraE1(estados,AFN.transiciones)
+        subconjuntos = Funciones.sortSubSets(subconjuntos)
+        Funciones.printSubSets(subconjuntos, estados)
+        
+        subSets, allSubSets, alfabetoNoe = Funciones.clausuraE2(subconjuntos, alfabeto, estadoFinal, transiciones)
+        
+        #a imprimir la tabla de Subconjuntos
+        Funciones.printTableOfSubSets(subSets,allSubSets, alfabetoNoe)
 
         estadoDelWhile = False
     else:
@@ -53,4 +55,7 @@ while estadoDelWhile:
         estadoDelWhile = False
 
     #(b|b)*abb(a|b)*
+    #fix (ab)*|(c*)b
+    #fix cuando usen +
+    #babbaaaaa
     #"ε"
