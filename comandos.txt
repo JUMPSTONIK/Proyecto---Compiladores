@@ -1,0 +1,2 @@
+dot -Tpng AFD.dot -o AFD.png 
+dot -Tpng AFN.dot -o AFN.png

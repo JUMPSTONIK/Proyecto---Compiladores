@@ -32,7 +32,53 @@ def procesandoAlfabeto(expresion,alfabeto, metaCaracteres):
             pass
     return alfabeto, expresion
 
-#Código para expresiones regulare de Infija a Postfija
+def Transformplus(expresion, alfabeto):
+    '''Este while existe para que se revise la cantidad de veces que sea necesaria la expresion y se resetee el tamaño
+    del primer for'''
+    while expresion.find("+") != -1:
+        '''son las variables que serviran para tener las posiciones de corte de la expresion'''
+        corte1 = 0
+        corte2 = 0
+        '''aqui empezamos a analizar del final al principio toda la expresion o desde al posicion que tenga que
+        analisar segun la posicion por la variable control'''
+        for pos in range (len(expresion)-1,0,-1):
+            
+            if str(expresion[pos]) == "+":
+                print('entre')
+                corte1 = pos + 1
+                stack = []
+                #print(expresion[pos -1])
+                for x in range(pos-1,-1,-1):
+                    #print('entre x2')
+                    if expresion[x] == "*" or expresion[x] == "+" or expresion[x] == "?" or expresion[x] == ")" or expresion[x] in alfabeto:
+                        print('entre x2')
+                        stack.append(expresion[x])
+                        print(str(stack))
+                    elif expresion[x] == "(":
+                        stack.remove(")") 
+                        print(str(stack))
+                    elif expresion[x] == "|" or expresion[x] == ".":
+                        if ")" not in stack:
+                            corte2 = x
+                            transform = expresion[corte2 +1: corte1 - 1]
+                            expresion = expresion[:corte2 + 1] + transform + "." + transform + "*" + expresion[corte1:]
+                            print(str(expresion))
+                            stack = []
+                            break
+                        else:
+                            stack.insert(0,expresion[x])
+                if len(stack) != 0:
+                    transform = expresion[:corte1 -1]
+                    expresion = transform + "." + transform + "*" + expresion[corte1:]
+    return expresion
+"""Esta es una funcion que sirve para poder mostrar una lista con todo su contenido concatenado"""
+def printlist(expresion):
+    regular = ""
+    for item in expresion:
+        regular += item
+    print(regular)
+
+"""Código para expresiones regulare de Infija a Postfija"""
 def infijoAPosfix(expresion,alfabeto):
     expresionPosfix = []
     pila = ['n']
@@ -304,44 +350,6 @@ def Thompson(expresionPosfix, alfabeto, operadores):
                     #transicionesPila.clear()
                 #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
                 #print(transiciones)
-            elif(i == "+"):
-                if(estadoFinal == ""):
-                    for x in range(cont, cont+4):
-                        estadosPila.append("q" + str(cont))
-                        cont+= 1
-                    transiciones[estadoInicial] = {transicionesPila[0] : estadosPila[0]}
-                    transiciones[estadosPila[0]] = {"ε1" : estadosPila[1], "ε2":estadosPila[-1]}
-                    transiciones[estadosPila[1]] = {transicionesPila.pop() : estadosPila[2], "ε1" : estadosPila[-1]}
-                    transiciones[estadosPila[2]] = {"ε1" : estadosPila[-1]}
-                    estados.append(estadosPila)
-                    estadoFinal = estadosPila[-1]
-                    inicialesPila.append(estadoInicial)
-                    finalesPila.append(estadosPila[-1])
-                    estadosPila.clear()
-                    #transicionesPila.clear()
-                    #print(transiciones)
-                elif(inicialesPila != "" and finalesPila != ""):
-                    for x in range(cont, cont+4):
-                        estadosPila.append("q" + str(cont))
-                        #print("q" + str(cont))
-                        cont+= 1
-                    transiciones[finalesPila[-1]] = {transicionesPila[-1]:estadosPila[0]}
-                    transiciones[estadosPila[0]] = {"ε1":estadosPila[1], "ε2":estadosPila[-1]}
-                    transiciones[estadosPila[1]] = {transicionesPila.pop():estadosPila[2], "ε1":estadosPila[-1]}
-                    transiciones[estadosPila[2]] = {"ε1":estadosPila[-1]}
-                    estados.append(estadosPila)
-                    estadoFinal = estadosPila[-1]
-                    if(inicialesPila != True and finalesPila != True):
-                        inicialesPila[-1] = estadosPila[0]
-                        finalesPila[-1] = estadosPila[-1]
-                    else:
-                        inicialesPila.append(estadosPila[0])
-                        finalesPila.append(estadosPila[-1])
-                    
-                    estadosPila.clear()
-                    #transicionesPila.clear()
-                #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
-                #print(transiciones)
         cont2 += 1
     estadoInicial = "q0"
     #inicialesPila.pop()
@@ -376,23 +384,26 @@ def crearGrafoDelAutomata(Transiciones, name,estadosFinales):
         Grafo += str(estadosFinales) + " [ style=bold ]\n"
     Grafo = str(Grafo) + "}"
     #print(Grafo)
+    createFile(name,Grafo, ".dot")
+    return Grafo
+
+def createFile(name, text, extension):
     existe = False
     try:
-        with open(str(name) + ".dot", 'r') as f:
+        with open(str(name) + extension, 'r') as f:
             existe = True
     except FileNotFoundError as e:
         existe = False
     
     if existe == True:
-        remove(str(name) + ".dot")
-        f = open(str(name) + '.dot','a', encoding='utf-8')
-        f.write(str(Grafo))
+        remove(str(name) + extension)
+        f = open(str(name) + extension,'a', encoding='utf-8')
+        f.write(str(text))
         f.close()
     else:
-        f = open(str(name) + '.dot','a', encoding='utf-8')
-        f.write(str(Grafo))
+        f = open(str(name) + extension,'a', encoding='utf-8')
+        f.write(str(text))
         f.close()
-    return Grafo
 
 def getEstados(transiciones, estadoInicial):
     result = []
@@ -426,6 +437,8 @@ def clausuraE1(estados,transiciones):
     subconjuntos = []
     listEst = []
     listTrans = []
+    #print(str(estados))
+    #print(str(transiciones))
     for item in estados:
         estadoTrans = item
         conjunto = []
@@ -468,7 +481,7 @@ def clausuraE1(estados,transiciones):
                     listTrans.pop()
                     #print("la lista de transiciones es " + str(listTrans))
                     #print("la lista de estados es " + str(listEst))
-                    #pass
+                    pass
                 
             if(len(listEst) != 0 and len(listTrans) != 0):
                 testTrans = listTrans[-1]
@@ -519,10 +532,13 @@ def clausuraE2(subconjuntos, alfabeto, estadoFinal, transiciones):
     alfa = [e for e in alfabeto if e != "ε"]
     alfa = sortList(alfa)
     '''obtenemos la lista dentro de la lista'''
+    print(str(subSets))
     for losEstados in subSets:
+        print(str(losEstados))
         '''realizamos ciclo para cada letra del alfabeto'''
         allSubSets.append(losEstados)
         for item in alfa:
+            print(item)
             #print("el caracter del alfabeto que toca analizar es: " + str(item) + "     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
             '''obtenemos cada elemento de la lista obtenida anteriormente'''
             for estado in losEstados:
@@ -580,9 +596,9 @@ def clausuraE2(subconjuntos, alfabeto, estadoFinal, transiciones):
                                 #Aqui revisamos si dicha transicion no es epsilon o si no del tipo de transicion que estamos trabajando
                                 if(str(listTrans[x]) != "ε1" and str(listTrans[x]) != "ε2" and str(listTrans[x]) != item):
                                     #print("aqui se esta realizando las siguiente eliminaciones, ya no nos importan las transiciones distintas a epsilon o " + str(item))
-                                    #print( "se ha eliminado la transicion " + listTrans.pop())
+                                    #print( "se ha eliminado la transicion " + listTrans.[-1])
                                     listTrans.pop()
-                                    #print("se ha eliminado el estado " + listEst.pop())
+                                    #print("se ha eliminado el estado " + listEst[-1])
                                     listEst.pop()
                                     #print("la lista de transiciones es " + str(listTrans))
                                     #print("la lista de estados es " + str(listEst))
@@ -590,9 +606,9 @@ def clausuraE2(subconjuntos, alfabeto, estadoFinal, transiciones):
                                 junto a sus transiciones. Si ya esta, entocnes procede a eliminar su estado y su transicion respectivamente."""
                                 elif(listEst[x] in conjunto):
                                     #print(str(listEst[x]) + " ya se encuentra dentro de conjutnos, por lo que eliminamos tener que recorrerlo de nuevo")
-                                    #print( "se ha eliminado la transicion " + listTrans.pop())
+                                    #print( "se ha eliminado la transicion " + listTrans[-1])
                                     listTrans.pop()
-                                    #print("se ha eliminado el estado " + listEst.pop())
+                                    #print("se ha eliminado el estado " + listEst[-1])
                                     listEst.pop()
                                     #print("la lista de transiciones es " + str(listTrans))
                                     #print("la lista de estados es " + str(listEst))
@@ -787,17 +803,61 @@ def Simulation(newEstadoInicial, newTransitions, cadena, newEstadosFinales):
     estado = newEstadoInicial
     print(newTransitions)
     for item in cadena:
-        #print(str(item))
+        print("El elemento que vamos a procesar de la cadena es " +str(item))
         #print(str(newTransitions.keys()))
         #print(Funciones.getkeys( newTransitions))
         #print(estado)
         if str(estado) in getkeys(newTransitions):
-            estado = newTransitions[str(estado)][item]
+            print(str(estado) + " posee estas transiciones " + str(newTransitions[str(estado)]))
+            try:
+                print("por lo que asignamos el estado " + str(newTransitions[str(estado)][item]))
+                estado = newTransitions[str(estado)][item]
+            except:
+                estado = "none"
+                pass
             #print(str(estado))
-        else:
-            pass
     print(newEstadosFinales)
     if str(estado) in newEstadosFinales:
         return "La cadena ha sido aceptada"
     else:
         return "la cadena no fue aceptada"
+
+def Transformplus(expresion, alfabeto):
+    '''Este while existe para que se revise la cantidad de veces que sea necesaria la expresion y se resetee el tamaño
+    del primer for'''
+    while expresion.find("+") != -1:
+        '''son las variables que serviran para tener las posiciones de corte de la expresion'''
+        corte1 = 0
+        corte2 = 0
+        '''aqui empezamos a analizar del final al principio toda la expresion o desde al posicion que tenga que
+        analisar segun la posicion por la variable control'''
+        for pos in range (len(expresion)-1,0,-1):
+            
+            if str(expresion[pos]) == "+":
+                print('entre')
+                corte1 = pos + 1
+                stack = []
+                #print(expresion[pos -1])
+                for x in range(pos-1,-1,-1):
+                    #print('entre x2')
+                    if expresion[x] == "*" or expresion[x] == "+" or expresion[x] == "?" or expresion[x] == ")" or expresion[x] in alfabeto:
+                        print('entre x2')
+                        stack.append(expresion[x])
+                        print(str(stack))
+                    elif expresion[x] == "(":
+                        stack.remove(")") 
+                        print(str(stack))
+                    elif expresion[x] == "|" or expresion[x] == ".":
+                        if ")" not in stack:
+                            corte2 = x
+                            transform = expresion[corte2 +1: corte1 - 1]
+                            expresion = expresion[:corte2 + 1] + transform + "." + transform + "*" + expresion[corte1:]
+                            print(str(expresion))
+                            stack = []
+                            break
+                        else:
+                            stack.insert(0,expresion[x])
+                if len(stack) != 0:
+                    transform = expresion[:corte1 -1]
+                    expresion = transform + "." + transform + "*" + expresion[corte1:]
+    return expresion
