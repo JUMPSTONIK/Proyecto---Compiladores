@@ -34,10 +34,9 @@ while estadoDelWhile:
         #print("Ahora vamos a contruir el arbol binario")   
         #Funciones.printTree(Funciones.crearArbol(expresionPosfix, alfabeto, operadores))
         print("ahora formaremos el automata")
-        """
-        transiciones, estadoFinal, estadoInicial = Funciones.Thompson(expresionPosfix, alfabeto, operadores)
+        transiciones, estadoFinal, estadoInicial = Funciones1.Thompson(expresionPosfix, alfabeto)
         
-        estados = Funciones.getEstados(transiciones, estadoInicial)
+        estados = Funciones1.getEstados(transiciones, estadoInicial)
         estados.append(estadoFinal)
         print("los estados son: " + str(estados))
         print("estado inicial es " + str(estadoInicial))
@@ -45,9 +44,9 @@ while estadoDelWhile:
         print(str(transiciones))
         AFN = Clases.Automata(estadoInicial, estadoFinal, estados, alfabeto, transiciones)
         #print("ya que tenemos el automata a traves de thompson, vamos a graficarlo")
-        Grafo = Funciones.crearGrafoDelAutomata(AFN.transiciones, "AFN", estadoFinal)
+        Grafo = Funciones1.crearGrafoDelAutomata(AFN.transiciones, "AFN", estadoFinal)
         #print("El grafo generado del AFN fue hecho en base a esta estructura: \n" + str(Grafo))
-        
+        """
         subconjuntos = Funciones.clausuraE1(estados,AFN.transiciones)
         subconjuntos = Funciones.sortSubSets(subconjuntos)
         print(subconjuntos)
@@ -77,10 +76,6 @@ while estadoDelWhile:
         print("¡Error! Ingrese una expresion regular valida.")
         estadoDelWhile = False
 
-    #(b|b)*abb(a|b)*
-    #fix (ab)*|(c*)b
-    #fix expresion babbaaaaa
-    #babbaaaaa
     #"ε"
     '''
     (b|b)*abb(a|b)*

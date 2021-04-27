@@ -1,6 +1,8 @@
 import re
 from os import remove
 import Clases
+import subprocess
+
 def validadExpresion(expresion):
     try:
         re.compile(expresion)
@@ -154,215 +156,171 @@ def printTree(node, level=0):
         print(' ' * 4 * level + '->', node.v)
         printTree(node.r, level + 1)
 
-def Thompson(expresionPosfix, alfabeto, operadores):
-    estadoInicial = "q0"
-    estadoFinal = ""
-    estados = ["q0"]
-    transiciones = {}
-    transicionesPila = []
-    estadosPila = []
-    inicialesPila = []
-    finalesPila = []
-    cont = 1
-    cont2 = 0
-    for i in expresionPosfix:
-        #print(i)
-        if (i in alfabeto):
-            #print(i)
-            transicionesPila.append(i)
-            #pila.append()
-            #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
+def Thompson(expresionPosfix, alfabeto):
+    stackTransiciones = []
+    stackIniciales = []
+    stackFinales = []
+    automata = {}
+    cont = 0
+    stackNewNodos = []
+    for caracter in expresionPosfix:
+        print(caracter)
+        if caracter in alfabeto:
+            stackTransiciones.append(caracter)
+            print(len(stackTransiciones))
         else:
-            if(i == "*"):
-                if(estadoFinal == ""):
-                    for x in range(cont, cont+3):
-                        estadosPila.append("q" + str(cont))
-                        cont+= 1
-                    transiciones[estadoInicial] = {"ε1" : estadosPila[0], "ε2" : estadosPila[-1]}
-                    transiciones[estadosPila[0]] = {transicionesPila.pop() : estadosPila[1]}
-                    transiciones[estadosPila[1]] = {"ε1" : estadosPila[2], "ε2" : estadosPila[0]}
-                    estados.append(estadosPila)
-                    estadoFinal = estadosPila[-1]
-                    inicialesPila.append(estadoInicial)
-                    finalesPila.append(estadosPila[-1])
-                    estadosPila.clear()
-                    transicionesPila.clear()
-                    #print(transiciones)
-                else:
-                    for x in range(cont, cont+2):
-                        estadosPila.append("q" + str(cont))
-                        cont+= 1
-                    transiciones[estadosPila[0]] = {"ε1" : inicialesPila[-1], "ε2" : estadosPila[-1]}
-                    transiciones[finalesPila[-1]] = {"ε1" : inicialesPila[-1], "ε2" :estadosPila[-1]}
-                    estados.append(estadosPila)
-                    estadoFinal = estadosPila[-1]
-                    if(inicialesPila != True and finalesPila != True):
-                        inicialesPila[-1] = estadosPila[0]
-                        finalesPila[-1] = estadosPila[-1]
-                    else:
-                        inicialesPila.append(estadosPila[0])
-                        finalesPila.append(estadosPila[-1])
+            if caracter == "|":
+                if len(stackTransiciones) >= 2:
+                    transicion1 = stackTransiciones.pop()
+                    transicion2 = stackTransiciones.pop()
+
+                    for x in range(cont, cont + 6):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
+                    automata[stackNewNodos[0]] = {"ε1": stackNewNodos[1], "ε2" : stackNewNodos[2]}
+                    automata[stackNewNodos[1]] = {transicion1 : stackNewNodos[3]}
+                    automata[stackNewNodos[2]] = {transicion2 : stackNewNodos[4]}
+                    automata[stackNewNodos[3]] = {"ε1":stackNewNodos[5]}
+                    automata[stackNewNodos[4]] = {"ε1":stackNewNodos[5]}
+
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+                elif len(stackTransiciones) == 1:
+                    transicion1 = stackTransiciones.pop()
+                    inicial = stackIniciales.pop()
+                    final = stackFinales.pop()
+
+                    for x in range(cont, cont + 4):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
                     
-                    estadosPila.clear()
-                    #transicionesPila.clear()
-                #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
-                #print(transiciones)
+                    automata[stackNewNodos[0]] = {"ε1": inicial, "ε2" : stackNewNodos[1]}
+                    automata[stackNewNodos[1]] = {transicion1 : stackNewNodos[2]}
+                    automata[stackNewNodos[2]] = {"ε1" : stackNewNodos[3]}
+                    automata[final] = {"ε1":stackNewNodos[3]}
                     
-            elif(i == "."):
-                if(len(transicionesPila) ==1 and len(inicialesPila) > 0 and len(finalesPila) == 1):
-                    
-                    #print(expresionPosfix[cont2-1])
-                    if(expresionPosfix[cont2-1] in operadores):
-                        transiciones["q" + str((len(transiciones)+ 1))] = {transicionesPila[-1] : inicialesPila[-1]}
-                    elif("q0" in transiciones):
-                        #transiciones[finalesPila.pop()] = {transicionesPila.pop(): inicialesPila.pop()}
-                        transiciones[finalesPila[-1]] = {transicionesPila.pop() : "q" + str((len(transiciones)+ 1))}
-                        finalesPila.pop()
-                        finalesPila.append("q" + str((len(transiciones))))
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+                elif len(stackTransiciones) == 0:
+                    inicial1 = stackIniciales.pop()
+                    inicial2 = stackIniciales.pop()
+                    final1 = stackFinales.pop()
+                    final2 = stackFinales.pop()
+
+                    for x in range(cont, cont + 2):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
+
+                    automata[stackNewNodos[0]] = {"ε1": inicial2, "ε2" : inicial1}
+                    automata[final1] = {"ε1":stackNewNodos[1]}
+                    automata[final2] = {"ε1":stackNewNodos[1]}
+
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+            if caracter == ".":
+                if len(stackTransiciones) >= 2:
+                    transicion1 = stackTransiciones.pop()
+                    transicion2 = stackTransiciones.pop()
+
+                    for x in range(cont, cont + 3):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
+
+                    automata[stackNewNodos[0]] = {transicion1: stackNewNodos[1]}
+                    automata[stackNewNodos[1]] = {transicion2: stackNewNodos[2]}
+
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+                elif len(stackTransiciones) == 1:
+                    transicion1 = stackTransiciones.pop()
+                    final = stackFinales.pop()
+
+                    stackNewNodos.append("q" + str(cont))
                     cont += 1
-                    #print(transiciones)
-                elif(len(inicialesPila) > 1 and len(finalesPila) > 1 and len(transicionesPila)==0):
-                    #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
-                    transiciones[finalesPila[-2]] = {"ε1": inicialesPila[-1]}
-                    #transiciones[finalesPila.pop(-2)] = {"ε1": inicialesPila.pop()}
-                    #print(transiciones)
-                
-                elif(estadoFinal == "" and len(transicionesPila) >= 2):
-                    transiciones[estadoInicial] = {transicionesPila.pop(0): "q1"}
-                    transiciones["q1"] ={ transicionesPila.pop(): "q2"}
-                    #print(transiciones)
-                    estadoFinal = "q2"
-                    cont += 2
-                    estados.append("q1")
-                    estados.append("q2")
+
+                    automata[final] = {transicion1: stackNewNodos[0]}
                     
-                    inicialesPila.append(estadoInicial)
-                    finalesPila.append(estadoFinal)
-                    #print(cont)
-                    #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
-                    #len(inicialesPila) == 1 and len(finalesPila) == 1) or estadoFinal == "" and
-                #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
-                #print(transiciones) 
-            elif(i == "|"):
-                if(len(transicionesPila) >= 2):
-                    if("q0" in transiciones):
-                        for x in range(cont, cont+6):
-                            estadosPila.append("q" + str(cont))
-                            #print("q" + str(cont))
-                            cont+= 1
-                        #print(estadosPila)
-                        #print(transiciones)
-                    else:
-                        estadosPila.append("q0")
-                        
-                        for x in range(cont, cont+5):
-                            estadosPila.append("q" + str(cont))
-                            #print("q" + str(cont))
-                            cont+= 1
-                    #print(estadosPila)
-                    #print(transiciones)
-                    #inicialesPila.append(finalesPila[-1])
-                    transiciones[estadosPila[0]] = {"ε1":estadosPila[1], "ε2":estadosPila[2]}
-                    transiciones[estadosPila[1]] = {transicionesPila.pop() : estadosPila[3]}
-                    transiciones[estadosPila[2]] = {transicionesPila.pop() : estadosPila[4]}
-                    transiciones[estadosPila[3]] = {"ε1":estadosPila[5]}
-                    transiciones[estadosPila[4]] = {"ε1":estadosPila[5]}
-                    #print(transiciones)
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+                elif len(stackTransiciones) == 0:
+                    final = stackFinales.pop(-2)
+                    inicial = stackIniciales.pop()
+
+                    automata[final] = {"ε1": inicial}
+
+            if caracter == "*":
+                if len(stackTransiciones) >= 1:
+                    transicion1 = stackTransiciones.pop()
+
+                    for x in range(cont, cont + 4):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
+
+                    automata[stackNewNodos[0]] = {"ε1":stackNewNodos[1], "ε2":stackNewNodos[3]}
+                    automata[stackNewNodos[1]] = {transicion1 :stackNewNodos[2]}
+                    automata[stackNewNodos[2]] = {"ε1":stackNewNodos[3], "ε2":stackNewNodos[1]}
                     
-                    #if("q0" in transiciones and cont<6):
-                    #    transiciones.pop(estadoInicial)
-            
-                    #estados.pop()
-                    estados.append(estadosPila)
-                    if(estadoInicial != "q0"):
-                        estadoInicial = estadosPila[0]
-                    estadoFinal = estadosPila[-1]
-                    #if(inicialesPila and finalesPila ):
-                    #    inicialesPila[0] = estadoInicial
-                    #    finalesPila[0] = estadoFinal
-                    #else:
-                    inicialesPila.append(estadosPila[0])
-                    finalesPila.append(estadoFinal)
-                    estadosPila.clear()
-                    #print(transiciones)
-                    #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila) + "   soy del or   y estado final es " + str(estadoFinal))
-                    #print("op1")
-                elif(len(inicialesPila) == 1 and len(finalesPila) == 1 and len(transicionesPila) == 1):
-                    #print("si entre")
-                    #print(finalesPila)
-                    for x in range(cont, cont+4):
-                        estadosPila.append("q" + str(cont))
-                        cont+= 1
-                    #print(finalesPila)
-                    transiciones[estadosPila[0]] = {"ε1" : estadosPila[1], "ε2" : inicialesPila[0]}
-                    transiciones[estadosPila[1]] = {transicionesPila.pop() : estadosPila[2]}
-                    transiciones[estadosPila[2]] = {"ε1" : estadosPila[3]}
-                    #print(finalesPila)
-                    transiciones[finalesPila.pop()] = {"ε2" : estadosPila[3]}
-                    estados.pop()
-                    estados.append(estadosPila)
-                    estadoInicial = estadosPila[0]
-                    estadoFinal = estadosPila[-1]
-                    #print(transiciones)
-                    #print("op2")
-                elif(len(inicialesPila) == 2 and len(finalesPila) == 2):
-                    for x in range(cont, cont+2):
-                        estadosPila.append("q" + str(cont))
-                        #print("q" + str(cont))
-                        cont+= 1
-                    transiciones[estadosPila[0]] = {"ε1" : inicialesPila[0], "ε2" : inicialesPila[1]}
-                    transiciones[finalesPila[0]] = {"ε1" : estadosPila[1]}
-                    transiciones[finalesPila[1]] = {"ε1" : estadosPila[1]}
-                    estados.pop()
-                    estados.append(estadosPila)
-                    estadoInicial = estadosPila[0]
-                    estadoFinal = estadosPila[-1]
-                    inicialesPila.clear()
-                    finalesPila.clear()
-                    finalesPila.append(estadosPila.pop())
-                    inicialesPila.append(estadosPila.pop())
-                #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
-                #print(transiciones)
-                    #print(finalesPila + inicialesPila)
-                    #print("op3")
-            elif(i == "?"):
-                if(estadoFinal == ""):
-                    for x in range(cont, cont+3):
-                        estadosPila.append("q" + str(cont))
-                        cont+= 1
-                    transiciones[estadoInicial] = {"ε1":estadosPila[0], "ε2":estadosPila[-1]}
-                    transiciones[estadosPila[0]] = {transicionesPila.pop():estadosPila[1]}
-                    transiciones[estadosPila[1]] = {"ε1":estadosPila[-1]}
-                    estados.append(estadosPila)
-                    estadoFinal = estadosPila[-1]
-                    estadosPila.clear()
-                    #transicionesPila.clear()
-                    #print(transiciones)
-                else:
-                    for x in range(cont, cont+2):
-                        estadosPila.append("q" + str(cont))
-                        cont+= 1
-                    transiciones[estadosPila[0]] = {"ε1":inicialesPila[0], "ε2": estadosPila[-1]}
-                    transiciones[finalesPila.pop()] = {"ε1":estadosPila[-1]}
-                    estados.append(estadosPila)
-                    estadoFinal = estadosPila[-1]
-                    estadosPila.clear()
-                    #transicionesPila.clear()
-                #print(str(inicialesPila) + "   " + str(finalesPila) + "   " + str(transicionesPila))
-                #print(transiciones)
-        cont2 += 1
-    estadoInicial = "q0"
-    #inicialesPila.pop()
-    #estadoFinal = finalesPila.pop()
-    if(len(inicialesPila) != 0 and len(finalesPila) != 0):
-        estadoInicial = inicialesPila[0]
-        estadoFinal = finalesPila[-1]
-    #print(transiciones)
-    if(len(transicionesPila) == 1 and estadoFinal == ""):
-        transiciones[estadoInicial] = {transicionesPila.pop(): "q1"}
-        estadoFinal = "q1"
-        #print(transiciones)
-    return transiciones, estadoFinal, estadoInicial
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+                elif len(stackTransiciones) == 0:
+                    inicial = stackIniciales.pop()
+                    final = stackFinales.pop()
+
+                    for x in range(cont, cont + 2):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
+
+                    automata[stackNewNodos[0]] = {"ε1": inicial, "ε2": stackNewNodos[1]}
+                    automata[final] = {"ε1": inicial, "ε2":stackNewNodos[1]}
+
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+            if caracter == "?":
+                if len(stackTransiciones) >= 1:
+                    transicion1 = stackTransiciones.pop()
+
+                    for x in range(cont, cont + 4):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
+
+                    automata[stackNewNodos[0]] = {"ε1":stackNewNodos[1], "ε2":stackNewNodos[3]}
+                    automata[stackNewNodos[1]] = {transicion1 :stackNewNodos[2]}
+                    automata[stackNewNodos[2]] = {"ε1":stackNewNodos[3]}
+                    
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+                elif len(stackTransiciones) == 0:
+                    inicial = stackIniciales.pop()
+                    final = stackFinales.pop()
+
+                    for x in range(cont, cont + 2):
+                        stackNewNodos.append("q" + str(cont))
+                        cont += 1
+
+                    automata[stackNewNodos[0]] = {"ε1": inicial, "ε2":stackNewNodos[1]}
+                    automata[final] = {"ε1":stackNewNodos[1]}
+
+                    stackIniciales.append(stackNewNodos[0])
+                    stackFinales.append(stackNewNodos[-1])
+                    stackNewNodos = []
+
+    return automata, stackFinales.pop(), stackIniciales.pop()
+
 
 def crearGrafoDelAutomata(Transiciones, name,estadosFinales):
     Grafo = "digraph G{\n"
@@ -861,3 +819,5 @@ def Transformplus(expresion, alfabeto):
                     transform = expresion[:corte1 -1]
                     expresion = transform + "." + transform + "*" + expresion[corte1:]
     return expresion
+
+
