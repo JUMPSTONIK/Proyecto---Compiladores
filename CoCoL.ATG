@@ -12,7 +12,7 @@ ignore = cr+lf+tab.
 comillas = CHR(34).
 stringletter = ANY-comillas-ignore.
 
-operadores ="+-=()[]{}|.<>".
+operadores = "+-=()[]{}|.<>".
 MyANY = ANY-operadores.
 KEYWORDS
 

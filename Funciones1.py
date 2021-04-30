@@ -13,13 +13,12 @@ def validadExpresion(expresion):
 
 def procesandoAlfabeto(expresion,alfabeto, metaCaracteres):
     alfabeto = list(set(expresion))
-    print("su alfabeto con todos los simbolos unicos de la expresion son los siguiente: " + str(alfabeto))
+    #print("su alfabeto con todos los simbolos unicos de la expresion son los siguiente: " + str(alfabeto))
     #con la siguiente linea eliminamso todos los metaCaracteres y dejamos solo los simbolos de la expresion regular
     alfabeto = [e for e in alfabeto if e not in metaCaracteres]
-    if ("ε" in alfabeto):
-        pass
-    else:
+    if ("ε" not in alfabeto):
         alfabeto.insert(0,"ε")
+
     #vamos a añadir el operador de concatenacion
     tamaño = len(expresion) * 2
     for y in range(0, tamaño):
@@ -27,11 +26,12 @@ def procesandoAlfabeto(expresion,alfabeto, metaCaracteres):
             if((expresion[y] in alfabeto or expresion[y] == "+" or expresion[y] == "*" or expresion[y] == "?" or expresion[y] == ")") and (expresion[y+1] in alfabeto or expresion[y+1] == "(")):
                 parte1 = expresion[:y+1]
                 parte2 = expresion[y+1:]
-                expresion = parte1 + "." +parte2
-                demo = parte1 + "." +parte2
+                expresion = parte1 + "<" +parte2
+                
                 #print(demo)
         except:
             pass
+
     return alfabeto, expresion
 
 def Transformplus(expresion, alfabeto):
@@ -46,32 +46,32 @@ def Transformplus(expresion, alfabeto):
         for pos in range (len(expresion)-1,0,-1):
             
             if str(expresion[pos]) == "+":
-                print('entre')
+                #print('entre')
                 corte1 = pos + 1
                 stack = []
                 #print(expresion[pos -1])
                 for x in range(pos-1,-1,-1):
                     #print('entre x2')
                     if expresion[x] == "*" or expresion[x] == "+" or expresion[x] == "?" or expresion[x] == ")" or expresion[x] in alfabeto:
-                        print('entre x2')
+                        #print('entre x2')
                         stack.append(expresion[x])
-                        print(str(stack))
+                        #print(str(stack))
                     elif expresion[x] == "(":
                         stack.remove(")") 
-                        print(str(stack))
-                    elif expresion[x] == "|" or expresion[x] == ".":
+                        #print(str(stack))
+                    elif expresion[x] == "|" or expresion[x] == "<":
                         if ")" not in stack:
                             corte2 = x
                             transform = expresion[corte2 +1: corte1 - 1]
-                            expresion = expresion[:corte2 + 1] + transform + "." + transform + "*" + expresion[corte1:]
-                            print(str(expresion))
+                            expresion = expresion[:corte2 + 1] + transform + "<" + transform + "*" + expresion[corte1:]
+                            #print(str(expresion))
                             stack = []
                             break
                         else:
                             stack.insert(0,expresion[x])
                 if len(stack) != 0:
                     transform = expresion[:corte1 -1]
-                    expresion = transform + "." + transform + "*" + expresion[corte1:]
+                    expresion = transform + "<" + transform + "*" + expresion[corte1:]
     return expresion
 """Esta es una funcion que sirve para poder mostrar una lista con todo su contenido concatenado"""
 def printlist(expresion):
@@ -96,20 +96,20 @@ def infijoAPosfix(expresion,alfabeto):
                     #pila.append(i)
                 else:
                     pila.append(i)
-            elif i == ".":
+            elif i == "<":
             #print "len(pila)"
             #print len(pila)
                 while (pila[-1] == "+" or pila[-1] == "*" or pila[-1] == "?") :
                     expresionPosfix.append(pila.pop())
                     #print len(pila)
-                if (pila[-1] == "."):
+                if (pila[-1] == "<"):
                     expresionPosfix.append(i)
                 else:
                     pila.append(i)
             elif(i == "|"):
                 #print "len(pila)"
                 #print len(pila)
-                while (pila[-1] == "+" or pila[-1] == "*" or pila[-1] == "?" or pila[-1] == "."):
+                while (pila[-1] == "+" or pila[-1] == "*" or pila[-1] == "?" or pila[-1] == "<"):
                     expresionPosfix.append(pila.pop())
                     #print len(pila)
                 if (pila[-1] == "|"):
@@ -156,18 +156,17 @@ def printTree(node, level=0):
         print(' ' * 4 * level + '->', node.v)
         printTree(node.r, level + 1)
 
-def Thompson(expresionPosfix, alfabeto):
+def Thompson(expresionPosfix, alfabeto, cont = 0):
     stackTransiciones = []
     stackIniciales = []
     stackFinales = []
     automata = {}
-    cont = 0
     stackNewNodos = []
     for caracter in expresionPosfix:
-        print(caracter)
+        #print(caracter)
         if caracter in alfabeto:
             stackTransiciones.append(caracter)
-            print(len(stackTransiciones))
+            #print(len(stackTransiciones))
         else:
             if caracter == "|":
                 if len(stackTransiciones) >= 2:
@@ -223,7 +222,7 @@ def Thompson(expresionPosfix, alfabeto):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-            if caracter == ".":
+            if caracter == "<":
                 if len(stackTransiciones) >= 2:
                     transicion1 = stackTransiciones.pop()
                     transicion2 = stackTransiciones.pop()
@@ -232,8 +231,8 @@ def Thompson(expresionPosfix, alfabeto):
                         stackNewNodos.append("q" + str(cont))
                         cont += 1
 
-                    automata[stackNewNodos[0]] = {transicion1: stackNewNodos[1]}
-                    automata[stackNewNodos[1]] = {transicion2: stackNewNodos[2]}
+                    automata[stackNewNodos[0]] = {transicion2: stackNewNodos[1]}
+                    automata[stackNewNodos[1]] = {transicion1: stackNewNodos[2]}
 
                     stackIniciales.append(stackNewNodos[0])
                     stackFinales.append(stackNewNodos[-1])
@@ -251,7 +250,10 @@ def Thompson(expresionPosfix, alfabeto):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-                elif len(stackTransiciones) == 0:
+                elif len(stackTransiciones) == 0 and len(stackFinales) > 1:
+                    #print(str(stackFinales))
+                    #print(str(stackIniciales))
+                    #print(str(stackTransiciones))
                     final = stackFinales.pop(-2)
                     inicial = stackIniciales.pop()
 
@@ -318,7 +320,8 @@ def Thompson(expresionPosfix, alfabeto):
                     stackIniciales.append(stackNewNodos[0])
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
-
+    #print(str(stackFinales))
+    #print(str(stackIniciales))
     return automata, stackFinales.pop(), stackIniciales.pop()
 
 
@@ -328,7 +331,7 @@ def crearGrafoDelAutomata(Transiciones, name,estadosFinales):
         #print(key)
         #print(Transiciones[key])
         for innerKey in Transiciones[key]:
-            graph = str(key) + " -> " + str(Transiciones[key][innerKey]) + " [label=" + str(innerKey) + "]\n"
+            graph = str(key) + " -> " + str(Transiciones[key][innerKey]) + " [label=" + '"' + str(innerKey) + '"'  + "]\n"
             
             if key in estadosFinales and str(name) == "AFD" and str(key) + " [ style=bold ]" not in Grafo:
                 graph += str(key) + " [ style=bold ]\n"
@@ -390,77 +393,88 @@ def getvalues(dict):
         list.append(val)
     return list
 
-def clausuraE1(estados,transiciones):
-    theStates = []
-    subconjuntos = []
+def SubconjuntosE(transiciones, estadoTrans):
     listEst = []
     listTrans = []
+    conjunto = []
+    find = False
+    while(find == False):
+        '''Ahora averiguaremos si el estado a revisar se encuentra dentro del automata '''
+        if estadoTrans in transiciones:
+            '''Si el estado esta dentro del automata, vamos a conseguir sus transiciones y sus estados a los que apunta dichas transiciones '''
+            Estytrans = transiciones[estadoTrans]
+            #print("====== fijate bien aqui con === " + str(Estytrans))
+            '''Procedemos a guardar las transiciones y los estados en listas distintas '''
+            lista = getkeys(Estytrans) 
+            #print(lista)
+            for i in range(0,len(lista)):
+                listTrans.append(lista.pop(0))
+            lista = getvalues(Estytrans)
+            #print(lista)
+            for i in range(0,len(lista)):
+                listEst.append(lista.pop(0))
+                    
+        #print("la lista de transiciones es " + str(listTrans))
+        #print("la lista de estados es " + str(listEst))
+        '''Iniciaremos a revisar las transiciones no epsilon que posee el estado que estamos revisando;
+        Para ello tambien necesitamos obtener el tamaño de las transiciones que hay '''
+        size = len(listEst)-1
+        for x in range(size,-1,-1):
+            #print(str(x))
+            #print("Estamos verificando la transicion " + str(listTrans[x]) + " y el estado " + str(listEst[x]))
+            '''Aqui revisamos si la transicion que hay no es epsilon y la sacamos de la lista de transiciones '''
+            if(str(listTrans[x][:1]) != "ε"):
+                #print(str(listTrans[x]) + " es algo que no es epsilon")
+                #print("conjuntos esta asi " + str(conjunto))
+                listTrans.pop()
+                listEst.pop()
+                #print("la lista de transiciones es " + str(listTrans))
+                #print("la lista de estados es " + str(listEst))
+                #print(str(x))
+                #print("antes de entrar listEst esta asi: " + str(listEst) + " y x es " + str(x))
+                '''En caso de que si sea un epsilon, revisamos si el estado al que apunta ya se encuentra dentro de conjunto
+                Hacemos esto, porque si el estado ya esta dentro de conjunto, entonces quiere decir que ya se reviso dicho estado,
+                por ende, no vale la pena volver a revisarlo'''
+            elif(listEst[x] in conjunto):
+                #print(str(listEst[x]) + " ya se encuentra dentro de conjutnos")
+                #print("conjuntos esta asi " + str(conjunto))
+                listEst.pop()
+                listTrans.pop()
+                #print("la lista de transiciones es " + str(listTrans))
+                #print("la lista de estados es " + str(listEst))
+                pass
+            
+        if(len(listEst) != 0 and len(listTrans) != 0):
+            testTrans = listTrans[-1]
+            #print("transicion a testear es " + str(testTrans) + " hacia el estado " + str(listEst[-1]))
+            if(testTrans[:1] == "ε"):
+                #print("halle epsilon")
+                #print("la lista de transiciones esta asi actualmente " + str(listTrans))
+                #cont += 1
+                estadoTrans = listEst.pop()
+                conjunto.append(estadoTrans)
+                listTrans.pop()
+                #print("conjuntos esta asi " + str(conjunto))
+                #print("la lista de transiciones es " + str(listTrans))
+                #print("la lista de estados es " + str(listEst))
+                #print("siguiente estado a revisar es "+ str(estadoTrans))
+        else:
+            find = True
+            return conjunto
+            #print("la lista de estados esta " + str(theStates))
+            #print("los subconjuntos respectivo a su estado esta " + str(subconjuntos))
+
+def clausuraE1(estados,transiciones):
+    #theStates = []
+    subconjuntos = []
     #print(str(estados))
     #print(str(transiciones))
+    '''iniciamos tomando los estados, dentro de la lista de estados del automata y los revisamos todos '''
     for item in estados:
+        '''decimos que estado trans sera igual al estado a revisar, se crea una varialbe para el conjunto de ese estado
+        Tambien creamos una variable que detendra el while cuando termine de hacer su revision'''
         estadoTrans = item
-        conjunto = []
-        theStates.append(item)
-        #print(estadoTrans)
-        find = False
-        while(find == False):
-            
-            if estadoTrans in transiciones:
-                Estytrans = transiciones[estadoTrans]
-                #print("====== fijate bien aqui con === " + str(Estytrans))
-                lista = getkeys(Estytrans) 
-                #print(lista)
-                for i in range(0,len(lista)):
-                    listTrans.append(lista.pop(0))
-                lista = getvalues(Estytrans)
-                #print(lista)
-                for i in range(0,len(lista)):
-                    listEst.append(lista.pop(0))
-                        
-            #print("la lista de transiciones es " + str(listTrans))
-            #print("la lista de estados es " + str(listEst))
-            size = len(listEst)-1
-            for x in range(size,-1,-1):
-                #print(str(x))
-                #print("Estamos verificando la transicion " + str(listTrans[x]) + " y el estado " + str(listEst[x]))
-                if(str(listTrans[x]) != "ε1" and str(listTrans[x]) != "ε2"):
-                    #print(str(listTrans[x]) + " es algo que no es epsilon")
-                    #print("conjuntos esta asi " + str(conjunto))
-                    listTrans.pop()
-                    listEst.pop()
-                    #print("la lista de transiciones es " + str(listTrans))
-                    #print("la lista de estados es " + str(listEst))
-                    #print(str(x))
-                    #print("antes de entrar listEst esta asi: " + str(listEst) + " y x es " + str(x))
-                elif(listEst[x] in conjunto):
-                    #print(str(listEst[x]) + " ya se encuentra dentro de conjutnos")
-                    #print("conjuntos esta asi " + str(conjunto))
-                    listEst.pop()
-                    listTrans.pop()
-                    #print("la lista de transiciones es " + str(listTrans))
-                    #print("la lista de estados es " + str(listEst))
-                    pass
-                
-            if(len(listEst) != 0 and len(listTrans) != 0):
-                testTrans = listTrans[-1]
-                #print("transicion a testear es " + str(testTrans) + " hacia el estado " + str(listEst[-1]))
-                if(testTrans == "ε1" or testTrans == "ε2"):
-                    #print("halle epsilon")
-                    #print("la lista de transiciones esta asi actualmente " + str(listTrans))
-                    #cont += 1
-                    estadoTrans = listEst.pop()
-                    conjunto.append(estadoTrans)
-                    listTrans.pop()
-                    #print("conjuntos esta asi " + str(conjunto))
-                    #print("la lista de transiciones es " + str(listTrans))
-                    #print("la lista de estados es " + str(listEst))
-                    #print("siguiente estado a revisar es "+ str(estadoTrans))
-            else:
-                find = True
-                subconjuntos.append(conjunto)
-                #print("la lista de estados esta " + str(theStates))
-                #print("los subconjuntos respectivo a su estado esta " + str(subconjuntos))
-    
+        subconjuntos.append(SubconjuntosE(transiciones, estadoTrans))    
     return subconjuntos
 
 def printSubSets(subconjuntos, estados):
@@ -473,220 +487,121 @@ def sortSubSets(subconjuntos):
         subconjuntos[set].sort()
     return subconjuntos
 
+def joinSets(conjunto1, conjunto2):
+
+    for item in conjunto2:
+        if item not in conjunto1:
+            conjunto1.append(item)
+    return conjunto1
+
 def sortList(list):
     list.sort()
     return list
 
-def clausuraE2(subconjuntos, alfabeto, estadoFinal, transiciones):
-    theStates = []
+def invertList(list):
+    newList = []
+    for x in range(len(list)-1,-1,-1):
+        newList.append(list[x])
+    return newList
+
+def removeEpsilon(alfabeto):
+    for x in range(0,len(alfabeto)):
+        pass
+
+def clausuraE2(subconjuntos, alfabeto,estadoInicial, estadoFinal, automata):
+    #print(alfabeto)
+    alfabetoNoe = [e for e in alfabeto if e != "ε"]
+    #alfabetoNoe = invertList(alfabetoNoe)
+    #print(alfabetoNoe)
     subSets = []
-    allTheStates = []
     allSubSets = []
-    listEst = []
-    listTrans = []
-    listEstadosTemp = []
-    conjunto = []
-    subSets.append(subconjuntos[0])
-    alfa = [e for e in alfabeto if e != "ε"]
-    alfa = sortList(alfa)
-    '''obtenemos la lista dentro de la lista'''
-    print(str(subSets))
-    for losEstados in subSets:
-        print(str(losEstados))
-        '''realizamos ciclo para cada letra del alfabeto'''
-        allSubSets.append(losEstados)
-        for item in alfa:
-            print(item)
-            #print("el caracter del alfabeto que toca analizar es: " + str(item) + "     xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-            '''obtenemos cada elemento de la lista obtenida anteriormente'''
-            for estado in losEstados:
-                #print("el estado en el que estamos es: " + str(estado) + " ````````````")
-                '''creamos la lista donde estara el conjunto a guardar
-                verificamos que no sea el estado final, ya que el estado final no tiene keys'''
-                if estado != estadoFinal:
-                    '''verificamos si el estado actual posee transiciones iguales a la letra actual'''
-                    if item in transiciones[estado].keys(): 
-                        '''ya que si tiene el mismo tipo de transicion, lo guardamos en estadoReceptor, en caso en la busqueda haga algun loop'''
-                        estadoReceptor = estado
-                        #print("el estado receptor es: " + str(estadoReceptor + " +++++++++++++++++++++++++++++++"))
-                        #print("el estado con la transicion " + str(item) + " es " + str(estadoReceptor) + "_______________")
-                        '''automaticamente guardamos al estado que apunta dentro de conjunto, ya que desde ahi iniciara su recorrido y podemos consentrarnos en los 
-                        siguientes estados y sus transiciones. Cabe decir que de esta manera, en caso sea algun or, ya se tendra guardado el estado al que punta
-                        ahorrando la busqueda mas adelante.'''
-                        conjunto.append(transiciones[estado][item])
-                        '''ademas que asi guardamos en estadoTrans dicha transicion a la que apunta para iniciar la busqueda'''
-                        estadoTrans = transiciones[estado][item]
-                        #print("ya que se sabe que " + str(estado) + " tiene transicion " + str(item) + " al conjunto se añade " + str(estadoTrans))
-                        #print("conjunto se ve ahora asi: " + str(conjunto))
-                        '''verificamos si no esta guardado el estado en theStates y lo guardamos en theStates y allTheStates
-                        en el caso que si, solo lo guardamos en allTheStates para tener la diferencia.
-                        hay que recordar, que theStates sirve para referenciar a subSets y saber de que estado salio dicho subconjunto'''
-                        if estadoTrans not in theStates:
-                            allTheStates.append(estadoTrans)
-                        else:
-                            allTheStates.append(estadoTrans)
-                        '''creamos una variable para dar fin al ciclo'''
-                        find = False
-                        '''ya que hay un estado, empezamos a analizarlo'''
-                        while(find == False):
-                            '''si estadoTrans se encuentra en transiciones, obtendremos sus transiciones y estados a los que apunta.'''
-                            if estadoTrans in transiciones:
-                                '''obtendremos dentro de una lista, todos los keys o transiciones que tiene'''
-                                Estytrans = transiciones[estadoTrans]
-                                lista = getkeys(Estytrans) 
-                                
-                                for i in range(0,len(lista)):
-                                    listTrans.append(lista.pop(0))
-                                '''luego obtendremos todos los estados correspondientes a cada transicion obtenida de antes.'''
-                                lista = getvalues(Estytrans)
-                                
-                                for i in range(0,len(lista)):
-                                    listEst.append(lista.pop(0)) 
-                            '''mostraremos la lista de transiciones y Estado, para poder saber con que se esta trabajando.'''
-                            #print("la lista de transiciones es " + str(listTrans))
-                            #print("la lista de estados es " + str(listEst))
-                            '''obtenemos el tamaño de la lista de estados
-                            en esta seccion queremos evitar revisitar estados que ya pasamos y eliminar las transiciones que no sean epsilon
-                            por ellos revisaremos del ultimo al primer elemento de cada lista.'''
-                            size = len(listEst)-1
-                            for x in range(size,-1,-1):
-                                #print(str(estadoTrans) + " es el estado con transicion " + str(listTrans[x] + " hacia " + str(listEst[x])))
-                                #Aqui revisamos si dicha transicion no es epsilon o si no del tipo de transicion que estamos trabajando
-                                if(str(listTrans[x]) != "ε1" and str(listTrans[x]) != "ε2" and str(listTrans[x]) != item):
-                                    #print("aqui se esta realizando las siguiente eliminaciones, ya no nos importan las transiciones distintas a epsilon o " + str(item))
-                                    #print( "se ha eliminado la transicion " + listTrans.[-1])
-                                    listTrans.pop()
-                                    #print("se ha eliminado el estado " + listEst[-1])
-                                    listEst.pop()
-                                    #print("la lista de transiciones es " + str(listTrans))
-                                    #print("la lista de estados es " + str(listEst))
-                                    """aqui verificamos si ya existia el estado dentro de conjuntos. Esto sirve para evitar el tener que revisar un estado que ya visitamos
-                                junto a sus transiciones. Si ya esta, entocnes procede a eliminar su estado y su transicion respectivamente."""
-                                elif(listEst[x] in conjunto):
-                                    #print(str(listEst[x]) + " ya se encuentra dentro de conjutnos, por lo que eliminamos tener que recorrerlo de nuevo")
-                                    #print( "se ha eliminado la transicion " + listTrans[-1])
-                                    listTrans.pop()
-                                    #print("se ha eliminado el estado " + listEst[-1])
-                                    listEst.pop()
-                                    #print("la lista de transiciones es " + str(listTrans))
-                                    #print("la lista de estados es " + str(listEst))
-                            '''aqui mostramos la lista de transiciones y de estados que quedaron, luego de revisar si ya se habian trabajo con ellas o las transiciones
-                            que se encontraban en la lista no eran epsilon o el tipo de transicion con la que vamos a trabajar.'''
-                            #print("antes de entrar, estas son:")
-                            #print("la lista de EstadoTemp estaba asi: " + str(listEstadosTemp))
-                            #print("la lista de transiciones es " + str(listTrans))
-                            #print("la lista de estados es " + str(listEst))
-                            '''Comenzaremos el tercer proceso de estos estados y tansiciones, donde iniciaremos revisando si las listas proveidas no son vacias.
-                            Se hace esta verificacion, ya que al estar vacias, no hay nada que procesar.'''
-                            if(len(listEst) != 0 and len(listTrans) != 0):
-                                '''ya que no son vacias, procedemos a tomar el ultimo elemento dentro de la lista de transiciones, ya que queremos verificar las transiciones
-                                de tipo epsilon para la clausura'''
-                                testTrans = listTrans[-1]
-                                #print("transicion a testear es " + str(testTrans) + " hacia el estado " + str(listEst[-1]))
-                                '''aqui verificamos si el testTrans tiene una transicion del tipo epsilon'''
-                                if testTrans == "ε1" or testTrans == "ε2":
-                                    '''Si resulta que testTrans si es epsilon, procedemos  a sacar el estado de la lista de estados y se lo asignamos a estadoTrans
-                                    de esta forma tendremos el proximo estado a verificar sus transiciones
-                                    asi mismo, procedemos a eliminar el estado verificado de la lista de Transiciones, para luego mostrar como esta conjuntos actualmente'''
-                                    estadoTrans = listEst.pop()
-                                    conjunto.append(estadoTrans)
-                                    listTrans.pop()
-                                    #print("conjuntos esta asi " + str(conjunto))
-                                    #print("la lista de transiciones es " + str(listTrans))
-                                    #print("la lista de estados es " + str(listEst))
-                                    #print("siguiente estado a revisar es "+ str(estadoTrans))
-                                    '''En caso que testTrans no sea un epsilon, eso quiere decir que es una tansicion del mismo tipo, que estamos verificando su 
-                                clausura'''    
-                                elif testTrans == item:
-                                    '''al ser el mismo, procedemos a eliminarlo y a su estado que apunta'''
-                                    #print("eliminaremos esta transicion " + str(testTrans) + " y su estado " + str(listEst[-1]) + " ya que tiene la misma transicion")
-                                    listEst.pop()
-                                    listTrans.pop()
-                                    '''cuando llegamos a este punto, necesitamos conseguir el proximo estado a trabajar, pero es posible que ya no hallan.
-                                    Esto nos indica que ya se han hallado todos los estados y transiciones posibles.
-                                    De no fallar, entonces podra seguir trabajando y revisando las transiciones de los proximos estados'''
-                                    try:
-                                        estadoTrans = listTrans[-1]
-                                        '''si falla, es porque ya no hay nada mas y le indicamso que puede salir del loop, ya que la lista esta totalmente vacia en 
-                                    este punto.'''
-                                    except:
-                                        find = True
-                                        #print("hasta aqui llega")
-                                    #print("nuevo estado de Transicion es " + str(estadoTrans))
-                                '''si hemos llegado aqui, es porque las listas de Transiciones y de estados esta totalmente vacia.
-                            dado este caso, debemos asegurarnos por distintos factores si realmente se ha terminado de revisar todos los estados del subconjunto 
-                            en la revision de este estado. Es asi que si encontramos que las listas estan vacias y el estado, del cual se esta revisando si tiene
-                            alguna transicion del tipo que se esta trabajando en esta vuelta, es el mismo del ultimo elemento del subconjunto.'''
-                            elif len(listEst) == 0 and len(listTrans) == 0 and estado == losEstados[-1]:
-                                '''si resulta ser asi, le indicamos que puede salir de este loop y procesguir con el siguiento del alfabeto a revisar'''
-                                find = True
-                                '''mostramos el resultado final de lo que hay en conjuntos y procedemos a ordenarlo'''
-                                #print("conjunto sin orden es " + str(conjunto))
-                                conjunto = sortList(conjunto)
-                                '''verificamos si conjunto se encuentra en subSets, porque no queremos que en esa lista se encuentre repetido y lo metemos a la lista temporal.
-                                aqui tambien lo metemos en allSubSets a conjuntos, para tener el record de todo lo trabajado en todo el proceso.'''
-                                listEstadosTemp.append(conjunto)
-                                '''ya que hemos guardado el conjunto, procedemos a mostrar cual fue el estado final que se trabajo y como esta la lista temporal
-                                de conjuntos que luego meteremos a subSets, ademas de vaciar la lista de conjuntos'''
-                                #print("el estado final fue: " + str(estado))
-                                #print("la lista de listas de subconjuntos unicos es " + str(listEstadosTemp))
-                                conjunto = []
-                                
-                                '''Tambien sabemos que las listas pueden estar vacias y jamas haber llegado al estado final del subconjunto que estamos revisando.
-                            por ello se guardo algo llamado el estadoReceptor, para saber si hemos llegado hasta al mismo estado que inicio la
-                            busqueda de la clausura. queremos saber si estadoTrans es el mismo a estadoReceptor, porque hemos vuelto al inicio de la busqueda o si
-                            estadoReceptor ya esta en conjuntos.Esto es porque de estarlo, puede que ya se le halla encontrado buscando la misma transicion, pero hizo
-                            falta mas de alguno, ya que no tenia epsilon, sino que la misma transicion de item. de esta manera le podemos indicar que salga del loop, 
-                            porque ya no tiene mas estados a los cuales llegar para buscar.'''
-                            elif len(listEst) == 0 and len(listTrans) == 0 and estado != losEstados[-1] and (estadoReceptor == estadoTrans or estadoReceptor in conjunto):
-                                #print("el estadoTrans es :" + str(estadoTrans))
-                                #print("la lista de EstadoTemp estaba asi: " + str(listEstadosTemp))
-                                if len(listEstadosTemp) >= (alfa.index(item) + 1):
-                                    listEstadosTemp[alfa.index(item)] = conjunto
-                                elif len(listEstadosTemp) <= alfa.index(item):
-                                    listEstadosTemp.append(conjunto)
-                                #print("agregando conjunto ahora esta asi: " + str(listEstadosTemp))
-                                #print("este es el index de " + str(item)+ ": " + str(alfa.index(item)))
-                                #print("todo esta vacio **********")
-                                find = True
-                        '''puede ser que se haya terminado de revisar todos los estados de un subconjunto con todas las transiciones del alfabeto, pero aun hace falta que sea 
-                    guardado el conjunto creado en la listaTemporal, ya que aun contiene dicho conjunto de estados'''           
-                    elif conjunto != []:
-                        '''de ser lo anterior, ordenara la lista de conjunto'''
-                        conjunto = sortList(conjunto)
-                        '''verificamos si conjunto se encuentra en subSets, porque no queremos que en esa lista se encuentre repetido y lo metemos a la lista temporal.
-                        aqui tambien lo metemos en allSubSets a conjuntos, para tener el record de todo lo trabajado en todo el proceso.'''
-                        if conjunto not in subSets and len(listEstadosTemp) < len(alfa):
-                            listEstadosTemp.append(conjunto)
-                        '''en el caso que si este conjunto en subSets, pues solo lo añadimos a la lista de todos los conjuntos hechos.
-                        mostramos el estado en el que se estaba trabajando y la lista temporal que trabajaremos al terminar de revisar todo el subconjunto de estados'''
-                        #print("el estado en el que estamos es: " + str(estado))
-                        #print("la lista de listas de subconjuntos unicos es " + str(listEstadosTemp))
-                        conjunto = []
-                    '''Tambien esta la posibilidad de que todo un subconjunto no tuviera ninguna transicion de la que tenia item, por lo que procedemos a guardar en
-                    alltheStates y allSubSets un espacio vacia y el conjunto vacio respectivamente.'''
-            
-            #print("Conjunto esta asi : " + str(conjunto) + " y listTemp esta asi: " + str(listEstadosTemp) + " despues de analizar a <" + str(item) + ">")
-            if conjunto == [] and listEstadosTemp == []:
-                listEstadosTemp.append([])
-        '''Se tiene esta condicional para revisar si conjunto no esta vacio. La razon viene de es que posible que los estados, los cuales se estuvieron revisando para formar
-        el conjunto, haya llegado al estado final. Cuando llega a ser revisado el estado final, este se omite y no se se sigue procesando, ya que no exite nada mas adelante del mismo.
-        por ello se saca del proceso, pero no se añade el conjunto a la lista temporal, por lo que se debe hacer fuera del proceso.'''
-        if conjunto != []:
-            listEstadosTemp.append(sortList(conjunto))
+    cont = 0
+    if subconjuntos[0] == []:
+        list = [estadoInicial]
+        subSets.append(list)
+    else:
+        subSets.append(subconjuntos[0])
+    
+    ''' Empezamos recorriendo todos los conjuntos en Subsets'''
+    #while cont < sizeSubsets:
+    for subSet in subSets:
+        sizeSubsets = len(subSets)
+    
+        #cont += 1
+        #subSet = subSets[cont]
+        #print(str(subSets))
+        #print("intento: " + str(cont) + " y el tamaño de subSets es: " + str(sizeSubsets))
+        '''Haremos este proceso, la cantidad de letras dentro del alfabeto sin epsilon '''
+        allSubSets.append(subSet)
+        for letra in alfabetoNoe:
             conjunto = []
+            listTransiciones = []
+            listEstados = []
+            '''revisaremos estado por estado '''
+            for estado in subSet:
+                
+                find = False
+                #print(estado)
+                while(find == False):
+                    
+                    if estado in automata:
+                        '''Si el estado esta dentro del automata, vamos a conseguir sus transiciones y sus estados a los que apunta dichas transiciones '''
+                        Estados_y_transiciones = automata[estado]
+                        #print(str(Estados_y_transiciones))
+                        '''Procedemos a guardar las transiciones y los estados en listas distintas '''
+                        lista = getkeys(Estados_y_transiciones) 
+                        
+                        for i in range(0,len(lista)):
+                            listTransiciones.append(lista.pop(0))
+                        lista = getvalues(Estados_y_transiciones)
+                        
+                        for i in range(0,len(lista)):
+                            listEstados.append(lista.pop(0))
+
+                    '''Iniciaremos a revisar las transiciones no epsilon que posee el estado que estamos revisando;
+                    Para ello tambien necesitamos obtener el tamaño de las transiciones que hay '''
+                    size = len(listEstados)-1
+                    for x in range(size,-1,-1):
+                        
+                        '''Aqui revisamos si la transicion que hay no es epsilon y la sacamos de la lista de transiciones '''
+                        if(str(listTransiciones[x]) != letra ):
+                            
+                            listTransiciones.pop()
+                            listEstados.pop()
+                            
+                            '''En caso de que si sea un epsilon, revisamos si el estado al que apunta ya se encuentra dentro de conjunto
+                            Hacemos esto, porque si el estado ya esta dentro de conjunto, entonces quiere decir que ya se reviso dicho estado,
+                            por ende, no vale la pena volver a revisarlo'''
+                        elif(listEstados[x] not in conjunto):
+                            
+                            conjunto.append(listEstados[x])
+                    #print("lo que hay dentro de listEstados es: " + str(listEstados))
+                    if(len(listEstados) != 0 and len(listTransiciones) != 0):
+                        #print(str(len(listEstados)))
+                        #theState = listEstados.pop()
+                        conjuntoEpsilon = SubconjuntosE(automata, listEstados.pop())
+                        conjunto = joinSets(conjunto, conjuntoEpsilon)
+                        conjunto = sortList(conjunto)
+                        listTransiciones.pop()
+                        find = True
+                    else:
+                        find = True
+                        #allSubSets.append([])
+                
+            allSubSets.append(conjunto)
+            #print(str(allSubSets))
+            if conjunto not in subSets and conjunto != []:
+                subSets.append(conjunto)
+                sizeSubsets += 1
+                #print("cont es :" + str(cont) + " y sizeSubsets es: " + str(len(subSets)))
+                #print(str(subSets))
+            #print('terminamos de trabajar con: ' + str(letra))
+        cont += 1
         
-        #print("la lista de listas de estados unicos son: " + str(listEstadosTemp) + " con los que procedemos a insertar en Subsets" +" <---------------------------------------")
-        '''Al final, añadimos los conjuntos de la lista temporal a la lista de subSets para que pueda seguir trabajando'''
-        for SubSetsUni in listEstadosTemp:
-            if(SubSetsUni != [] and SubSetsUni not in subSets):
-                subSets.append(SubSetsUni)
-            allSubSets.append(SubSetsUni)
-        listEstadosTemp = []
-        '''finalmente, mostramos el resultado de como termino la lista de conjuntos unicos que seran usador para formar el automata finito determinista.'''
-        #print("subset se ve asi, despues de añadir la listaTemp" + str(subSets))
-        #print("allSubset se ve asi, despues de añadir la listaTemp" + str(allSubSets))
-    return subSets, allSubSets, alfa
+        
+            
+    #print("-----------------" + str(subSets))
+    return subSets, allSubSets, alfabetoNoe
 
 def printTableOfSubSets(subSets,allSubSets, alfabetoNoe):
     TheStates = newStates(subSets)
@@ -701,15 +616,19 @@ def printTableOfSubSets(subSets,allSubSets, alfabetoNoe):
     for letra in alfabetoNoe:
         columnas = columnas + (" " * round(separacion/2)) + str(letra) + (" " * separacion)
     print(columnas)
-    #columnas = columnas + (" " * round(separacion/2)) + "tipo" + (" " * separacion)
+
     fila = ""
     cont = 0
     for state in TheStates:
-        fila = str(state) + "   "
+        #print(str(state))
+        if cont <= len(allSubSets)-1:
+            fila = str(state) + "   "
         for unConjunto in range(0,len(alfabetoNoe)+1):
-            if cont % (len(alfabetoNoe)+1) == 0:
+            #print(cont)
+            #print(len(allSubSets))
+            if cont % (len(alfabetoNoe)+1) == 0 and cont <= len(allSubSets)-1:
                 fila += str(allSubSets[cont]) + (" " * separacion)
-            else:
+            elif cont <= len(allSubSets)-1:
                 reference = columnas.index(alfabetoNoe[(cont % (len(alfabetoNoe)+1))-1])
                 separacionL = len(fila) - reference
 
@@ -759,65 +678,24 @@ def createFDA(subSets, alfabetoNoe, allSubSets):
 
 def Simulation(newEstadoInicial, newTransitions, cadena, newEstadosFinales):
     estado = newEstadoInicial
-    print(newTransitions)
+    #print(newTransitions)
     for item in cadena:
         print("El elemento que vamos a procesar de la cadena es " +str(item))
         #print(str(newTransitions.keys()))
         #print(Funciones.getkeys( newTransitions))
         #print(estado)
-        if str(estado) in getkeys(newTransitions):
-            print(str(estado) + " posee estas transiciones " + str(newTransitions[str(estado)]))
-            try:
-                print("por lo que asignamos el estado " + str(newTransitions[str(estado)][item]))
-                estado = newTransitions[str(estado)][item]
-            except:
-                estado = "none"
-                pass
-            #print(str(estado))
-    print(newEstadosFinales)
+        if(item != ")" and item != "("):
+            if str(estado) in getkeys(newTransitions):
+                print(str(estado) + " posee estas transiciones " + str(newTransitions[str(estado)]))
+                try:
+                    #print("por lo que asignamos el estado " + str(newTransitions[str(estado)][item]))
+                    estado = newTransitions[str(estado)][item]
+                except:
+                    #estado = "none"
+                    pass
+                #print(str(estado))
+    #print(newEstadosFinales)
     if str(estado) in newEstadosFinales:
         return "La cadena ha sido aceptada"
     else:
         return "la cadena no fue aceptada"
-
-def Transformplus(expresion, alfabeto):
-    '''Este while existe para que se revise la cantidad de veces que sea necesaria la expresion y se resetee el tamaño
-    del primer for'''
-    while expresion.find("+") != -1:
-        '''son las variables que serviran para tener las posiciones de corte de la expresion'''
-        corte1 = 0
-        corte2 = 0
-        '''aqui empezamos a analizar del final al principio toda la expresion o desde al posicion que tenga que
-        analisar segun la posicion por la variable control'''
-        for pos in range (len(expresion)-1,0,-1):
-            
-            if str(expresion[pos]) == "+":
-                print('entre')
-                corte1 = pos + 1
-                stack = []
-                #print(expresion[pos -1])
-                for x in range(pos-1,-1,-1):
-                    #print('entre x2')
-                    if expresion[x] == "*" or expresion[x] == "+" or expresion[x] == "?" or expresion[x] == ")" or expresion[x] in alfabeto:
-                        print('entre x2')
-                        stack.append(expresion[x])
-                        print(str(stack))
-                    elif expresion[x] == "(":
-                        stack.remove(")") 
-                        print(str(stack))
-                    elif expresion[x] == "|" or expresion[x] == ".":
-                        if ")" not in stack:
-                            corte2 = x
-                            transform = expresion[corte2 +1: corte1 - 1]
-                            expresion = expresion[:corte2 + 1] + transform + "." + transform + "*" + expresion[corte1:]
-                            print(str(expresion))
-                            stack = []
-                            break
-                        else:
-                            stack.insert(0,expresion[x])
-                if len(stack) != 0:
-                    transform = expresion[:corte1 -1]
-                    expresion = transform + "." + transform + "*" + expresion[corte1:]
-    return expresion
-
-

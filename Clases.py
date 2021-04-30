@@ -12,12 +12,13 @@ class Node:
 
 class Automata:
 
-    def __init__(self, estIn, estFin, states, alfabeth, transitions):
+    def __init__(self, estIn, estFin, states, alfabeth, transitions, name = ""):
         self.estadoInicial = estIn
         self.estadosFinales = estFin
         self.estados = states
         self.alfabeto = alfabeth
         self.transiciones = transitions
+        self.nombre = name
 
     
 
