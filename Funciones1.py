@@ -84,6 +84,7 @@ def printlist(expresion):
 def infijoAPosfix(expresion,alfabeto):
     expresionPosfix = []
     pila = ['n']
+    
     for i in expresion:
         if (i in alfabeto):
             expresionPosfix.append(i) 
@@ -162,6 +163,10 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
     stackFinales = []
     automata = {}
     stackNewNodos = []
+    #expresionPosfix = [e for e in expresionPosfix if e != "("]
+    #expresionPosfix = [e for e in expresionPosfix if e != ")"]
+    
+    #print(str(expresionPosfix))
     for caracter in expresionPosfix:
         #print(caracter)
         if caracter in alfabeto:
@@ -186,7 +191,7 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-                elif len(stackTransiciones) == 1:
+                elif len(stackTransiciones) == 1 :
                     transicion1 = stackTransiciones.pop()
                     inicial = stackIniciales.pop()
                     final = stackFinales.pop()
@@ -204,7 +209,7 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-                elif len(stackTransiciones) == 0:
+                elif len(stackTransiciones) == 0 :
                     inicial1 = stackIniciales.pop()
                     inicial2 = stackIniciales.pop()
                     final1 = stackFinales.pop()
@@ -250,7 +255,7 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-                elif len(stackTransiciones) == 0 and len(stackFinales) > 1:
+                elif len(stackTransiciones) == 0:
                     #print(str(stackFinales))
                     #print(str(stackIniciales))
                     #print(str(stackTransiciones))
@@ -275,7 +280,7 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-                elif len(stackTransiciones) == 0:
+                elif len(stackTransiciones) == 0 and len(stackIniciales):
                     inicial = stackIniciales.pop()
                     final = stackFinales.pop()
 
@@ -306,7 +311,7 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-                elif len(stackTransiciones) == 0:
+                elif len(stackTransiciones) == 0 :
                     inicial = stackIniciales.pop()
                     final = stackFinales.pop()
 
@@ -320,8 +325,35 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackIniciales.append(stackNewNodos[0])
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
+    #or str(expresionPosfix) == "['.', '(']"
+    if str(expresionPosfix) == "['.', ')', '(', '(']" or str(expresionPosfix) == "['.', ')']":
+        if str(expresionPosfix) == "['.', ')', '(', '(']":
+            transicion1 = expresionPosfix.pop()
+            expresionPosfix.pop()
+            expresionPosfix.pop()
+            transicion2 = expresionPosfix.pop()
+        else:
+            transicion1 = expresionPosfix.pop()
+            transicion2 = expresionPosfix.pop()
+
+        #print(transicion1)
+        #print(transicion2)
+        for x in range(cont, cont + 3):
+            stackNewNodos.append("q" + str(cont))
+            cont += 1
+
+        automata[stackNewNodos[0]] = {transicion2: stackNewNodos[1]}
+        automata[stackNewNodos[1]] = {transicion1: stackNewNodos[2]}
+
+        
+        stackIniciales.append(stackNewNodos[0])
+        stackFinales.append(stackNewNodos[-1])
+        
+
+    #print(str(stackTransiciones))
     #print(str(stackFinales))
     #print(str(stackIniciales))
+    #print(str(automata))
     return automata, stackFinales.pop(), stackIniciales.pop()
 
 
@@ -508,7 +540,7 @@ def removeEpsilon(alfabeto):
     for x in range(0,len(alfabeto)):
         pass
 
-def clausuraE2(subconjuntos, alfabeto,estadoInicial, estadoFinal, automata):
+def clausuraE2(subconjuntos, alfabeto,estadoInicial, automata):
     #print(alfabeto)
     alfabetoNoe = [e for e in alfabeto if e != "ε"]
     #alfabetoNoe = invertList(alfabetoNoe)
@@ -644,27 +676,54 @@ def printTableOfSubSets(subSets,allSubSets, alfabetoNoe):
         print(fila)
         fila = ""
 
-def newStates(subSets):
+def newStates(subSets, cont = 0):
     TheStates = []
-    for cont in range(0,len(subSets)):
-        TheStates.append(str(cont))
+    #print(str(cont))
+    for con in range(cont,cont + len(subSets)):
+        TheStates.append(str(con))
+    #print(str(cont + len(subSets)))
+    print("Estos son los Estados nuevos para el AFD" + str(TheStates))
+    #print(len(TheStates))
     return TheStates
 
-def newFinalStates(subSets, newStates, estadoFinal):
+def newFinalStates2(subSets, newStates, estadoFinal):
     theNewFinalStates = []
+    #print(type(estadoFinal))
+    Finales = estadoFinal
     cont = 0
+    #print(newStates)
+    #recorremos todos los subconjuntos por subconjuntos
     for conjunto in subSets:
+        #tamamos un estado final de la lista de estados Finales
+        for estado in Finales:  
+            #si este estado se encuentra dentro del conjunto se añade a la lista
+            # de nuewvos estados finales  
+            if estado in conjunto:
+                theNewFinalStates.append(str(newStates[cont]))
+            cont += 1
+    return theNewFinalStates
+
+def newFinalStates1(subSets, newStates, estadoFinal):
+    theNewFinalStates = []
+    #print(estadoFinal.type())
+
+    cont = 0
+    #tomamos conjunto por conjunto
+    for conjunto in subSets:
+        #se verifica si en dicho conjunto se encuentra cierto estado final
         if estadoFinal in conjunto:
             theNewFinalStates.append(str(newStates[cont]))
         cont += 1
     return theNewFinalStates
 
-def createFDA(subSets, alfabetoNoe, allSubSets):
-    NStates = newStates(subSets)
+def createFDA(subSets, alfabetoNoe, allSubSets, cont = 0):
+    NStates = newStates(subSets,cont)
     newTransitions = {}
-    cont1 = 1
+    cont1 = 0 + 1
     cont2 = 0
+    #print(len(NStates))
     for uniConjunto in subSets:
+        #print(str(cont2))
         newTransitions[NStates[cont2]] = {}
         for item in alfabetoNoe:
             if allSubSets[cont1] != []:

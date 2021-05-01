@@ -263,7 +263,9 @@ def processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS):
         expresion = expresion.replace(' ', '')
         expresion = expresion.replace('+', '')
         if key == "startcode":
-            expresion = '"(."'
+            expresion = '"((.)"'
+        if key == "endcode":
+            expresion = '"(.))"'
         expresion = expresion.replace('"', '')
         if expresion.find("CHR",8) != -1:
             #print("si entre")
@@ -292,15 +294,19 @@ def processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS):
                 #line = line.replace("+","")
                 #print(str(line))
             elif Tokkeys[x] == 'nontoken' and key == 'MyANY':
-                line = CHARACTERS[key]
+                theline = CHARACTERS[key].replace("z~", "z|~")
+                theline = theline.replace("?|", "")
+                theline = theline.replace("*|", "")
+                theline = theline.replace(".|", "")
+                line = theline
         file += Tokkeys[x] + " = " + line + "\n"
         TOKENS[Tokkeys[x]] = line
-        print(str(TOKENS))
+        #print(str(TOKENS))
     return TOKENS, file
 
 def CreateAFN(expresion, name = "", cont = 0):
-    metaCaracteres = ["*","+","(",")","|","?","<"]
-    operadores = ["*","+","|","?","<"]
+    metaCaracteres = ["*","(",")","|","?","<"]
+    operadores = ["*","|","?","<"]
     alfabeto = []
     #recibimos la expresion para formar el alfabeto y la cadena para el posfix
     alfabeto, expresion = Funciones1.procesandoAlfabeto(expresion,alfabeto, metaCaracteres)
@@ -318,23 +324,22 @@ def CreateAFN(expresion, name = "", cont = 0):
     Funciones1.crearGrafoDelAutomata(AFN.transiciones, "AFN" + name, estadoFinal)
     return AFN
 
-def CreateAFD():
-    subconjuntos = Funciones1.clausuraE1(estados,AFN.transiciones)
+def CreateAFD(AFN, cont = 0):
+    subconjuntos = Funciones1.clausuraE1(AFN.estados,AFN.transiciones)
     subconjuntos = Funciones1.sortSubSets(subconjuntos)
     
-    
-    subSets, allSubSets, alfabetoNoe = Funciones1.clausuraE2(subconjuntos, alfabeto,estadoInicial, estadoFinal, transiciones)
-    #a imprimir la tabla de Subconjuntos
-    
-    #print("estos son los subconjuntos unicos, luego de ClausuraE2" + str(subSets))
-    #print("estos son todos los subconjuntos para la tabla" + str(allSubSets))
-    
+    subSets, allSubSets, alfabetoNoe = Funciones1.clausuraE2(subconjuntos, AFN.alfabeto,AFN.estadoInicial, AFN.transiciones)
     #Funciones1.printTableOfSubSets(subSets,allSubSets, alfabetoNoe)
-    
-    newStates = Funciones1.newStates(subSets)
-    newEstadoInicial = "0"
-    newEstadosFinales = Funciones1.newFinalStates(subSets, newStates, estadoFinal)
-    newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets)
+    newEstadoInicial = cont
+    print(str(cont))
+    newStates = Funciones1.newStates(subSets, cont)
+    newEstadosFinales = Funciones1.newFinalStates1(subSets, newStates, AFN.estadosFinales)
+    newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets, cont)
+    #print(newStates)
     AFD = Clases.Automata(newEstadoInicial, newEstadosFinales, newStates, alfabetoNoe, newTransitions)
     
-    Grafo2 = Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFD", newEstadosFinales)
+    Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFD" + AFN.nombre, newEstadosFinales)
+    return AFD
+
+def GeneradorDeAutomatas():
+    pass

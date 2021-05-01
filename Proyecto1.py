@@ -55,7 +55,7 @@ while estadoDelWhile:
         #print("estos son lo subconjuntos despues de ClausuraE1: " + str(subconjuntos))
         #Funciones.printSubSets(subconjuntos, estados)
         
-        subSets, allSubSets, alfabetoNoe = Funciones1.clausuraE2(subconjuntos, alfabeto,estadoInicial, estadoFinal, transiciones)
+        subSets, allSubSets, alfabetoNoe = Funciones1.clausuraE2(subconjuntos, alfabeto,estadoInicial, transiciones)
         #a imprimir la tabla de Subconjuntos
         
         #print("estos son los subconjuntos unicos, luego de ClausuraE2" + str(subSets))
@@ -66,7 +66,7 @@ while estadoDelWhile:
         
         newStates = Funciones1.newStates(subSets)
         newEstadoInicial = "0"
-        newEstadosFinales = Funciones1.newFinalStates(subSets, newStates, estadoFinal)
+        newEstadosFinales = Funciones1.newFinalStates1(subSets, newStates, estadoFinal)
         newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets)
 
         AFD = Clases.Automata(newEstadoInicial, newEstadosFinales, newStates, alfabetoNoe, newTransitions)

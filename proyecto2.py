@@ -67,25 +67,33 @@ file += "#TOKENS\n"
 Tokkeys = Funciones1.getkeys(TOKENS)
 TOKENS, file = Funciones2.processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS)
 
-print(file)
+#print(file)
 
 Funciones1.createFile("file", file, ".py")
-'''
-contEstados = 0
+
+contEstadosAFD = 0
+contEstadosAFN = 0
 listExceptions = []
 listOfAFN = []
+listOfAFD = []
 for x in range(0,len(Tokkeys)):
+    #aqui obtenemos lo necesario para los AFN
     expresionRegular = TOKENS[Tokkeys[x]]
     if expresionRegular.find("EXCEPTKEYWORDS") != -1:
         expresionRegular = expresionRegular[:expresionRegular.find("EXCEPTKEYWORDS")]
         listExceptions.append(Tokkeys[x])
     print(expresionRegular)
-    listOfAFN.append(Funciones2.CreateAFN(expresionRegular, Tokkeys[x], contEstados))
-    contEstados += len(listOfAFN[x].estados)
-'''
+    listOfAFN.append(Funciones2.CreateAFN(expresionRegular, Tokkeys[x], contEstadosAFN))
+    contEstadosAFN += len(listOfAFN[x].estados)
+
+    
+    #ahora crearemos los AFD en base a los AFN en la lista
+    listOfAFD.append(Funciones2.CreateAFD(listOfAFN[x],contEstadosAFD))
+    #print(listOfAFD[x].estados)
+    contEstadosAFD += len(listOfAFD[x].estados)
+    print("este es el valor del cont para los AFD " + str(contEstadosAFD))
+
+
     
 
-
-
-            
-            
+                
