@@ -2,10 +2,14 @@ import Funciones2
 import Funciones1
 
 '''Estos son los textos de prueba'''
-#COCOr = Funciones2.getText("Aritmetica.ATG")
-#COCOr = Funciones2.getText("HexNumber.ATG")
-COCOr = Funciones2.getText("CoCoL.ATG")
-#COCOr = Funciones2.getText("Double.ATG")
+Aritmetica = "Aritmetica"
+Hexnumber = "HexNumber"
+Cocol = "CoCoL"
+Double = "Double"
+#COCOr = Funciones2.getText(Aritmetica + ".ATG")
+COCOr = Funciones2.getText(Hexnumber + ".ATG")
+#COCOr = Funciones2.getText(Cocol + ".ATG")
+#COCOr = Funciones2.getText(Double + ".ATG")
 #print(COCOr)
 
 '''guardamos las palabras que definen cada seccion'''
@@ -84,7 +88,7 @@ superAlfabeto = []
 #print(str(superAutomata))
 
 for AFN in listOfAFN:
-    print(str(superCont))
+    #print(str(superCont))
     #añadimos nuevo estado inicial, llamado root al super automata y su transicion epsilon hacia
     #el estado inicial del AFN de la lista
     superAutomata[root]["ε" + str(superCont)] = str(AFN.estadoInicial)
@@ -100,9 +104,13 @@ for AFN in listOfAFN:
 #print(str(superAlfabeto))
 #print(str(superAutomata))
 
-SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales)
+#SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Aritmetica)
+#SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Hexnumber)
+#SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Cocol)
+SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Double)
 
-print(str(SUPERAFD.transiciones))
+
+#print(str(SUPERAFD.transiciones))
 
 
 

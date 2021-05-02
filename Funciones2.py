@@ -356,7 +356,7 @@ def CreateAFD(AFN, cont = 0, listaFinales = []):
     Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFD" + AFN.nombre, newEstadosFinales)
     return AFD
 
-def CreateSuperAFD(estados, transiciones, alfabeto, estadoInicial,listaFinales, cont = 0):
+def CreateSuperAFD(estados, transiciones, alfabeto, estadoInicial,listaFinales, name, cont = 0):
     #con los estados y el automata con sus transiciones y a quien apunta se forman los subconjutos
     subconjuntos = Funciones1.clausuraE1(estados, transiciones)
     #ordenamos los conjuntos para que sea mas simple de tratarlos.
@@ -383,9 +383,9 @@ def CreateSuperAFD(estados, transiciones, alfabeto, estadoInicial,listaFinales, 
     #print(str(newEstadosFinales))
     newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets,newStates)
     #print(newStates)
-    AFD = Clases.Automata(newEstadoInicial, newEstadosFinales, newStates, alfabetoNoe, newTransitions)
+    AFD = Clases.Automata(newEstadoInicial, newEstadosFinales, newStates, alfabetoNoe, newTransitions, "AFDSuperAutomata" + name)
     
-    Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFDSuperAutomata", newEstadosFinales)
+    Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFDSuperAutomata" + name, newEstadosFinales)
     return AFD
 
 
