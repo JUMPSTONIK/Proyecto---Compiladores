@@ -67,8 +67,10 @@ while estadoDelWhile:
         newStates = Funciones1.newStates(subSets)
         newEstadoInicial = "0"
         newEstadosFinales = Funciones1.newFinalStates1(subSets, newStates, estadoFinal)
-        newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets)
-
+        newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets, newStates)
+        print(str(newEstadoInicial))
+        print(str(newStates))
+        print(str(newEstadosFinales))
         AFD = Clases.Automata(newEstadoInicial, newEstadosFinales, newStates, alfabetoNoe, newTransitions)
         
         Grafo2 = Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFD", newEstadosFinales)

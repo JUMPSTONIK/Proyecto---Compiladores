@@ -324,22 +324,93 @@ def CreateAFN(expresion, name = "", cont = 0):
     Funciones1.crearGrafoDelAutomata(AFN.transiciones, "AFN" + name, estadoFinal)
     return AFN
 
-def CreateAFD(AFN, cont = 0):
+def CreateAFD(AFN, cont = 0, listaFinales = []):
+    #con los estados y el automata con sus transiciones y a quien apunta se forman los subconjutos
     subconjuntos = Funciones1.clausuraE1(AFN.estados,AFN.transiciones)
+    #ordenamos los conjuntos para que sea mas simple de tratarlos.
     subconjuntos = Funciones1.sortSubSets(subconjuntos)
-    
+    #aqui en la segunda clausura se envian los subconjuntos, el alfabeto, el estado inicial y el automata. 
+    #el alfabeto es enviado, para que sepa por cuales transiciones pasar y quizas sea necesario eliminar el los
+    #"()", porque es posible que eso de errores o sino añadirlos. los subconjuntos, ya que con ello se decide si usar el
+    #primer conjuntos o el estado incial, en el caso sea una concatenacion la primera operacion. Ademas del uso del
+    #automata, ya que con el se obtiene parte imporante de los subconjuntos de la siguiente parte para hacer el AFD
     subSets, allSubSets, alfabetoNoe = Funciones1.clausuraE2(subconjuntos, AFN.alfabeto,AFN.estadoInicial, AFN.transiciones)
     #Funciones1.printTableOfSubSets(subSets,allSubSets, alfabetoNoe)
+    #añadimos el estado inicial, que esta relacionado con el valor del cont, el cual da forma a los estados de inicio
+    #a fin
     newEstadoInicial = cont
-    print(str(cont))
+    #print(str(cont))
+    #aqui generamos los estaods en base a la cantidad de subconjuntos unicos obtenidos, ya que seran quienes
+    #se contecten entre si
     newStates = Funciones1.newStates(subSets, cont)
+    #En esta funcion se crea un array de los nuevos estados finales, ya que estos son aquellos que posean en su
+    #subconjunto el valor del estado final o finales.
     newEstadosFinales = Funciones1.newFinalStates1(subSets, newStates, AFN.estadosFinales)
-    newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets, cont)
+    #print(str(cont))
+    #print(str(newStates))
+    #print(str(newEstadosFinales))
+    newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets,newStates)
     #print(newStates)
     AFD = Clases.Automata(newEstadoInicial, newEstadosFinales, newStates, alfabetoNoe, newTransitions)
     
     Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFD" + AFN.nombre, newEstadosFinales)
     return AFD
 
-def GeneradorDeAutomatas():
-    pass
+def CreateSuperAFD(estados, transiciones, alfabeto, estadoInicial,listaFinales, cont = 0):
+    #con los estados y el automata con sus transiciones y a quien apunta se forman los subconjutos
+    subconjuntos = Funciones1.clausuraE1(estados, transiciones)
+    #ordenamos los conjuntos para que sea mas simple de tratarlos.
+    subconjuntos = Funciones1.sortSubSets(subconjuntos)
+    #aqui en la segunda clausura se envian los subconjuntos, el alfabeto, el estado inicial y el automata. 
+    #el alfabeto es enviado, para que sepa por cuales transiciones pasar y quizas sea necesario eliminar el los
+    #"()", porque es posible que eso de errores o sino añadirlos. los subconjuntos, ya que con ello se decide si usar el
+    #primer conjuntos o el estado incial, en el caso sea una concatenacion la primera operacion. Ademas del uso del
+    #automata, ya que con el se obtiene parte imporante de los subconjuntos de la siguiente parte para hacer el AFD
+    subSets, allSubSets, alfabetoNoe = Funciones1.clausuraE2(subconjuntos, alfabeto, estadoInicial, transiciones)
+    #Funciones1.printTableOfSubSets(subSets,allSubSets, alfabetoNoe)
+    #añadimos el estado inicial, que esta relacionado con el valor del cont, el cual da forma a los estados de inicio
+    #a fin
+    newEstadoInicial = cont
+    #print(str(cont))
+    #aqui generamos los estaods en base a la cantidad de subconjuntos unicos obtenidos, ya que seran quienes
+    #se contecten entre si
+    newStates = Funciones1.newStates(subSets, cont)
+    #En esta funcion se crea un array de los nuevos estados finales, ya que estos son aquellos que posean en su
+    #subconjunto el valor del estado final o finales.
+    newEstadosFinales = Funciones1.newFinalStates2(subSets, newStates, listaFinales)
+    #print(str(cont))
+    #print(str(newStates))
+    #print(str(newEstadosFinales))
+    newTransitions = Funciones1.createFDA(subSets, alfabetoNoe, allSubSets,newStates)
+    #print(newStates)
+    AFD = Clases.Automata(newEstadoInicial, newEstadosFinales, newStates, alfabetoNoe, newTransitions)
+    
+    Funciones1.crearGrafoDelAutomata(AFD.transiciones, "AFDSuperAutomata", newEstadosFinales)
+    return AFD
+
+
+
+def GeneradorDeAutomatas(Tokkeys, TOKENS):
+    contEstadosAFD = 0
+    contEstadosAFN = 0
+    listExceptions = []
+    listOfAFN = []
+    listOfAFD = []
+    for x in range(0,len(Tokkeys)):
+        #aqui obtenemos lo necesario para los AFN
+        expresionRegular = TOKENS[Tokkeys[x]]
+        if expresionRegular.find("EXCEPTKEYWORDS") != -1:
+            expresionRegular = expresionRegular[:expresionRegular.find("EXCEPTKEYWORDS")]
+            listExceptions.append(Tokkeys[x])
+        #print(expresionRegular)
+        listOfAFN.append(CreateAFN(expresionRegular, Tokkeys[x], contEstadosAFN))
+        contEstadosAFN += len(listOfAFN[x].estados)
+
+        
+        #ahora crearemos los AFD en base a los AFN en la lista
+        listOfAFD.append(CreateAFD(listOfAFN[x],contEstadosAFD))
+        #print(listOfAFD[x].estados)
+        contEstadosAFD += len(listOfAFD[x].estados)
+        #print("este es el valor del cont para los AFD " + str(contEstadosAFD))
+
+    return listExceptions, listOfAFN, listOfAFD

@@ -675,32 +675,36 @@ def printTableOfSubSets(subSets,allSubSets, alfabetoNoe):
         fila += "\n"
         print(fila)
         fila = ""
-
+'''En base al cont y la cantidad de Estados dentro de la lista de subconjuntos unicos creamos un array
+con un valor correspondiente al subconjunto generado'''
 def newStates(subSets, cont = 0):
     TheStates = []
     #print(str(cont))
     for con in range(cont,cont + len(subSets)):
         TheStates.append(str(con))
     #print(str(cont + len(subSets)))
-    print("Estos son los Estados nuevos para el AFD" + str(TheStates))
+    #print("Estos son los Estados nuevos para el AFD" + str(TheStates))
     #print(len(TheStates))
     return TheStates
-
-def newFinalStates2(subSets, newStates, estadoFinal):
+'''Para esta funcion lo mejor sera el tener que recibir la lista de subconjuntos unicos y los nuevos estados creados.
+Esto porque al usar un array de estados finales, podemos hacer dicho recorrido, pero si detectamos que en
+cierta posicion tal conjunto si posee un estado final de la lista de estados finales, entonces añadimos su valor
+correspondiente dentro de la lista de newStates. Esto porque en la misma posicion del newState, esta el subconjunto
+que corresponde al subconjunto al cual posee algun estado Final. '''
+def newFinalStates2(subSets, newStates, listEstadosFinales):
     theNewFinalStates = []
     #print(type(estadoFinal))
-    Finales = estadoFinal
     cont = 0
     #print(newStates)
     #recorremos todos los subconjuntos por subconjuntos
     for conjunto in subSets:
         #tamamos un estado final de la lista de estados Finales
-        for estado in Finales:  
+        for estadoFinal in listEstadosFinales:  
             #si este estado se encuentra dentro del conjunto se añade a la lista
             # de nuewvos estados finales  
-            if estado in conjunto:
-                theNewFinalStates.append(str(newStates[cont]))
-            cont += 1
+            if estadoFinal in conjunto:
+                theNewFinalStates.append(newStates[cont])
+        cont += 1
     return theNewFinalStates
 
 def newFinalStates1(subSets, newStates, estadoFinal):
@@ -712,12 +716,12 @@ def newFinalStates1(subSets, newStates, estadoFinal):
     for conjunto in subSets:
         #se verifica si en dicho conjunto se encuentra cierto estado final
         if estadoFinal in conjunto:
-            theNewFinalStates.append(str(newStates[cont]))
+            theNewFinalStates.append(newStates[cont])
         cont += 1
     return theNewFinalStates
 
-def createFDA(subSets, alfabetoNoe, allSubSets, cont = 0):
-    NStates = newStates(subSets,cont)
+def createFDA(subSets, alfabetoNoe, allSubSets, newStates):
+    NStates = newStates
     newTransitions = {}
     cont1 = 0 + 1
     cont2 = 0

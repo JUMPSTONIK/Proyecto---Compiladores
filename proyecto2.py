@@ -26,7 +26,7 @@ if COCOr.find("ANY") != -1:
 
 #print(CHARACTERS)
 
-'''Extraemos todas las lineas dentro con su identificados y su valor'''
+'''Extraemos todas las lineas dentro con su identificador y su valor'''
 CHARACTERS, KEYWORDS, TOKENS = Funciones2.atgReader(wordsReserved, COCOr, CHARACTERS, KEYWORDS, TOKENS)
 
 #print("CHARACTERS: " + str(CHARACTERS))
@@ -71,29 +71,46 @@ TOKENS, file = Funciones2.processAndConvert(TOKENS, Tokkeys, charkeys, file, CHA
 
 Funciones1.createFile("file", file, ".py")
 
-contEstadosAFD = 0
-contEstadosAFN = 0
-listExceptions = []
-listOfAFN = []
-listOfAFD = []
-for x in range(0,len(Tokkeys)):
-    #aqui obtenemos lo necesario para los AFN
-    expresionRegular = TOKENS[Tokkeys[x]]
-    if expresionRegular.find("EXCEPTKEYWORDS") != -1:
-        expresionRegular = expresionRegular[:expresionRegular.find("EXCEPTKEYWORDS")]
-        listExceptions.append(Tokkeys[x])
-    print(expresionRegular)
-    listOfAFN.append(Funciones2.CreateAFN(expresionRegular, Tokkeys[x], contEstadosAFN))
-    contEstadosAFN += len(listOfAFN[x].estados)
 
-    
-    #ahora crearemos los AFD en base a los AFN en la lista
-    listOfAFD.append(Funciones2.CreateAFD(listOfAFN[x],contEstadosAFD))
-    #print(listOfAFD[x].estados)
-    contEstadosAFD += len(listOfAFD[x].estados)
-    print("este es el valor del cont para los AFD " + str(contEstadosAFD))
+listExceptions, listOfAFN, listOfAFD = Funciones2.GeneradorDeAutomatas(Tokkeys,TOKENS)
+superCont = 1
+root = "q#"
+superAutomata = {}
+superAutomata[root] = {}
+superEstados = []
+superEstados.append(root)
+ListaFinales = []
+superAlfabeto = []
+#print(str(superAutomata))
+
+for AFN in listOfAFN:
+    print(str(superCont))
+    #añadimos nuevo estado inicial, llamado root al super automata y su transicion epsilon hacia
+    #el estado inicial del AFN de la lista
+    superAutomata[root]["ε" + str(superCont)] = str(AFN.estadoInicial)
+    #hacemos un merge del diccionario del super automata y el AFN correspondiente
+    superAutomata = {**superAutomata, **AFN.transiciones}
+    #obtenemos los estados finales de cada AFN para crear el AFD y sus estados finales
+    ListaFinales.append(AFN.estadosFinales)
+    #unimos las listas de estados de los AFN para crear la lista con todos los estados
+    superEstados = superEstados + AFN.estados
+    superAlfabeto = Funciones1.sortList(list(set(superAlfabeto + AFN.alfabeto)))
+    superCont += 1
+
+#print(str(superAlfabeto))
+#print(str(superAutomata))
+
+SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales)
+
+print(str(SUPERAFD.transiciones))
 
 
-    
 
-                
+#Tomar en cuenta que el problema con los (), puede que sea en thompson o en cualquier operacion que utilice
+#el alfabeto y puede sea necesario añadirlos. Esto es un recordatorio para asi poder
+#dar una solucion a ello a futuro y puede que eso sea lo que esta afectando el uso
+#de dicho simbolo.
+#*****Revisar todas las funciones que hagan uso del alfabeto y verificar que no discriminena ()***
+
+#deberia poner en las condiciona donde se descriminan los () y los operadores, que si ya se hallo un "("
+#significa que tanto ( y ) son del alfabeto y operandos
