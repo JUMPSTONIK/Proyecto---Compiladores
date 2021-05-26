@@ -1,3 +1,4 @@
+from os import pipe
 import Funciones2 
 import Funciones1
 
@@ -7,8 +8,8 @@ Hexnumber = "HexNumber"
 Cocol = "CoCoL"
 Double = "Double"
 #COCOr = Funciones2.getText(Aritmetica + ".ATG")
-COCOr = Funciones2.getText(Hexnumber + ".ATG")
-#COCOr = Funciones2.getText(Cocol + ".ATG")
+#COCOr = Funciones2.getText(Hexnumber + ".ATG")
+COCOr = Funciones2.getText(Cocol + ".ATG")
 #COCOr = Funciones2.getText(Double + ".ATG")
 #print(COCOr)
 
@@ -66,15 +67,19 @@ file, listKeywords = Funciones2.gettingKeywords(KEYWORDS, file)
 '''Ahora procederemos a limpiar y traducir los TOKENS del lenguage de Cocol a
 Expresiones regulares que podamos procesar. Tambien se añadiran los CHARACTERS
 dentro de las Expresiones regulares. Asi estaran listas para trabajar con ellas. '''
-
 file += "#TOKENS\n"
 Tokkeys = Funciones1.getkeys(TOKENS)
 TOKENS, file = Funciones2.processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS)
 
+if "string" in Tokkeys:
+    TOKENS.pop("string", None)
+    Tokkeys.remove("string")
+
+#print(Tokkeys)
+#print(TOKENS)
 #print(file)
 
 Funciones1.createFile("file", file, ".py")
-
 
 listExceptions, listOfAFN, listOfAFD = Funciones2.GeneradorDeAutomatas(Tokkeys,TOKENS)
 superCont = 1
@@ -106,11 +111,56 @@ for AFN in listOfAFN:
 
 #SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Aritmetica)
 #SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Hexnumber)
-#SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Cocol)
-SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Double)
-
+SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Cocol)
+#SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto, root, ListaFinales, Double)
 
 #print(str(SUPERAFD.transiciones))
+
+content = ""
+with open(Cocol + ".txt") as f:
+    content = f.read()
+    print(str(content))
+
+
+
+#print(str(SUPERAFD.alfabeto))
+SUPERAFD.alfabeto.append("(")
+SUPERAFD.alfabeto.append(")")
+SUPERAFD.alfabeto.append('"')
+listToken = Funciones1.getkeys(TOKENS)
+#print(str(listToken))
+listOfWordsInContent = []
+listOfTokenFromContent = []
+word = ""
+line = 0
+pos = 1
+
+for item in content:
+    #print("'" + item + "'")
+    if item != " " and item != "\n" and item != "\t":
+        if item in SUPERAFD.alfabeto:
+            word += item
+            pos += 1
+        else:
+            if item != " " and item != "\n" and item != "\t":
+                word += item
+                print("Se ha detectado un caracter no aceptable: " + str(item) + " En la posicion " + str(pos) + " linea " + str(line))
+                pos += 1
+    else:
+        #print("x"+word+"x")
+        if word != "":
+            #print(word)
+            listOfWordsInContent.append(word)
+            listOfTokenFromContent.append(Funciones2.getToken(SUPERAFD, listToken,listKeywords, word))
+            word = ""
+            print("El token de " + str(listOfWordsInContent[-1] + " es " + str(listOfTokenFromContent[-1])))
+    if(item == "\n"):
+        pos = 1
+        line += 1
+
+print(listOfWordsInContent)
+print(listOfTokenFromContent)
+
 
 
 

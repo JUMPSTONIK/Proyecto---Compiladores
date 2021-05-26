@@ -1,0 +1,7 @@
+(. everyone hey dkk555
+	while x is = 3 :
+		today = "23"
+		'/m'
+		CHR(4) 
+		CHR(5)..CHR(25) 
+		.) 

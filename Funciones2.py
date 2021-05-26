@@ -60,8 +60,8 @@ def atgReader(wordsReserved, COCOr, CHARACTERS, KEYWORDS, TOKENS):
                         #print(line)
                         id, terminal = extraction(line)
                         #print(id +" = " + terminal)
-                        if terminal.find(id) == -1:
-                            TOKENS[id] = terminal
+                        #if terminal.find(id) == -1:
+                        TOKENS[id] = terminal
     return CHARACTERS, KEYWORDS, TOKENS
 
 def readAndProcess(CHARACTERS):
@@ -206,10 +206,16 @@ def gettingKeywords(KEYWORDS, file):
 
 def processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS):
     
-    #print(str(keys))
+    #print(str(Tokkeys))
     cont = 0
     for key in Tokkeys:
+        #print(str(key))
         expresion = TOKENS[key]
+        if expresion.find("EXCEPTKEYWORDS") != -1:
+            # EXCEPT = expresion[expresion.find("EXCEPTKEYWORDS"): expresion.find("EXCEPTKEYWORDS") + len("EXCEPTKEYWORDS")]
+            # #print( EXCEPT)
+            # EXCEPT = ' + "' + EXCEPT + '"'
+            expresion = expresion[:expresion.find("EXCEPTKEYWORDS")]
         #print(expresion)
         expresion = expresion.replace('"(', ' + ".(')
         expresion = expresion.replace(')"', ')"')
@@ -217,15 +223,11 @@ def processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS):
         expresion = expresion.replace('."', '"')
         expresion = expresion.replace("{",' + ".(" +')
         expresion = expresion.replace("}",' + ")*" +')
-        expresion = expresion.replace("[",' + ".(" + ')
-        expresion = expresion.replace("]",' + ")?" + ')
+        #el cambio lo hice aqui
+        expresion = expresion.replace("[",' + "" + ')
+        expresion = expresion.replace("]",' + "?" + ')
+        #hasta aqui
         expresion = expresion.replace('""', '')
-        if expresion.find("EXCEPTKEYWORDS") != -1:
-            EXCEPT = expresion[expresion.find("EXCEPTKEYWORDS"): expresion.find("EXCEPTKEYWORDS") + len("EXCEPTKEYWORDS")]
-            #print( EXCEPT)
-            EXCEPT = ' + "' + EXCEPT + '"'
-            expresion = expresion[:expresion.find("EXCEPT")]
-            expresion +=  EXCEPT
         expresion = expresion.replace('"("', '"+"("+')
         expresion = expresion.replace('.(" + ".(', '.(" + "(')
         expresion = expresion.replace("+ +", "+")
@@ -280,13 +282,16 @@ def processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS):
         #print(file)
         #file += Tokkeys[cont] + " = " + expresion + "\n"
         cont += 1 
-
+    
+    
+        
     for x in range(0, len(Tokkeys)):
         line = TOKENS[Tokkeys[x]]
-        for key in charkeys:
+        for c in range(len(charkeys)-1, -1, -1):
+            key = charkeys[c]
             #print(key)
-            #print(line)
-            if line.find(key) != -1 and (Tokkeys[x] != 'nontoken' and key != 'ANY') and (Tokkeys[x] != 'hexnumber' or key != 'digit'):
+            #print(Tokkeys[x])
+            if line.find(key) != -1  and (Tokkeys[x] != 'nontoken' and key != 'ANY') and (Tokkeys[x] != 'hexnumber' or key != 'digit'):
                 #print("entre")
                 #print(key)
                 line = line.replace(key, CHARACTERS[key])
@@ -303,6 +308,9 @@ def processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS):
         TOKENS[Tokkeys[x]] = line
         #print(str(TOKENS))
     return TOKENS, file
+
+
+
 
 def CreateAFN(expresion, name = "", cont = 0):
     metaCaracteres = ["*","(",")","|","?","<"]
@@ -375,9 +383,12 @@ def CreateSuperAFD(estados, transiciones, alfabeto, estadoInicial,listaFinales, 
     #aqui generamos los estaods en base a la cantidad de subconjuntos unicos obtenidos, ya que seran quienes
     #se contecten entre si
     newStates = Funciones1.newStates(subSets, cont)
+    #print(str(newStates))
+    #print("\n" + str(listaFinales))
     #En esta funcion se crea un array de los nuevos estados finales, ya que estos son aquellos que posean en su
     #subconjunto el valor del estado final o finales.
     newEstadosFinales = Funciones1.newFinalStates2(subSets, newStates, listaFinales)
+    #print(str(newEstadosFinales))
     #print(str(cont))
     #print(str(newStates))
     #print(str(newEstadosFinales))
@@ -399,10 +410,11 @@ def GeneradorDeAutomatas(Tokkeys, TOKENS):
     for x in range(0,len(Tokkeys)):
         #aqui obtenemos lo necesario para los AFN
         expresionRegular = TOKENS[Tokkeys[x]]
-        if expresionRegular.find("EXCEPTKEYWORDS") != -1:
-            expresionRegular = expresionRegular[:expresionRegular.find("EXCEPTKEYWORDS")]
-            listExceptions.append(Tokkeys[x])
+        # if expresionRegular.find("EXCEPTKEYWORDS") != -1:
+        #     expresionRegular = expresionRegular[:expresionRegular.find("EXCEPTKEYWORDS")]
+        #     listExceptions.append(Tokkeys[x])
         #print(expresionRegular)
+        #print(Tokkeys[x])
         listOfAFN.append(CreateAFN(expresionRegular, Tokkeys[x], contEstadosAFN))
         contEstadosAFN += len(listOfAFN[x].estados)
 
@@ -414,3 +426,65 @@ def GeneradorDeAutomatas(Tokkeys, TOKENS):
         #print("este es el valor del cont para los AFD " + str(contEstadosAFD))
 
     return listExceptions, listOfAFN, listOfAFD
+
+def getTokenAri(SUPERAFD, estado, listToken):
+    cont = 0
+    for estadosFinales in SUPERAFD.estadosFinales:
+        
+        if str(estado) in estadosFinales:
+            print(listToken[cont])
+        cont += 1
+    estado = SUPERAFD.estadoInicial
+    return estado
+
+def aritmeticaScanner(TOKENS, SUPERAFD, content):
+    listToken = Funciones1.getkeys(TOKENS)
+    print(str(listToken))
+    estado = SUPERAFD.estadoInicial
+    for item in content:
+        print("'" + item + "'")
+        if item in SUPERAFD.alfabeto:
+            #print("im in")
+            estado = SUPERAFD.transiciones[str(estado)][item]
+            
+        else:
+            estado = getTokenAri(SUPERAFD, estado, listToken)
+        
+    if estado != 0:
+        estado = getTokenAri(SUPERAFD, estado, listToken)
+
+def getToken(SUPERAFD, listToken,listKeyWords, word):
+    token = ""
+    cont = 0
+    estado = SUPERAFD.estadoInicial
+    if word == "(.":
+        token = "startcode"
+    elif word == ".)":
+        token = "endcode"
+    elif word[0] == '"' and word[-1] =='"':
+        token =  "string"
+    elif len(word) == 4 and word[0] == "'" and word[-1] == "'" and word[1] == "/" and ((ord(word[2]) >= 97 and ord(word[2]) <= 122) or (ord(word[2]) >= 65 and ord(word[2]) <= 90)):
+        token =  "char"
+    else:
+        for letter in word:
+            if letter != "(" and letter != ")":
+                #print(letter)
+                try:
+                    estado = SUPERAFD.transiciones[str(estado)][letter]
+                except:
+                    #print(letter)
+                    token = "ERROR"    
+
+    if token == "":
+        for estadosFinales in SUPERAFD.estadosFinales:
+            
+            if str(estado) in estadosFinales:
+                token = listToken[cont]
+            cont += 1
+
+    if token == "ident":
+        if word in listKeyWords:
+            token = "keyword"
+
+    return token
+    

@@ -1,0 +1,14 @@
+digraph G{
+136 -> 1 [label="E"]
+137 -> 2 [label="N"]
+138 -> 3 [label="D"]
+139 -> 4 [label="A"]
+140 -> 5 [label="r"]
+141 -> 6 [label="i"]
+142 -> 7 [label="t"]
+143 -> 8 [label="m"]
+144 -> 9 [label="e"]
+145 -> 10 [label="t"]
+146 -> 11 [label="i"]
+147 -> 12 [label="c"]
+}

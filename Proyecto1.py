@@ -21,7 +21,7 @@ while estadoDelWhile:
         #print("su alfabeto es el siguiente: " + str(alfabeto))
         #print("sus MetaCaracteres(operadores) son: " + str(operadores))
         #print("vamos a añadir el operador de concatenacion")
-        #print("la expresion regular con su operador de concatenacion queda asi: " + expresion)
+        print("la expresion regular con su operador de concatenacion queda asi: " + expresion)
         #print("realizaremos un proceso extra para trabajar el operador +, en caso se encuentre dentro de la expresion")
         '''
         if expresion.find("+") != -1:

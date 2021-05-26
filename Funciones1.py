@@ -173,6 +173,8 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
             stackTransiciones.append(caracter)
             #print(len(stackTransiciones))
         else:
+            #print(str(stackIniciales))
+            #print(str(stackFinales))
             if caracter == "|":
                 if len(stackTransiciones) >= 2:
                     transicion1 = stackTransiciones.pop()
@@ -209,7 +211,8 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-                elif len(stackTransiciones) == 0 :
+                #elif len(stackTransiciones) == 0 and len(stackIniciales) > 1 and len(stackNewNodos) > 1:
+                elif len(stackTransiciones) == 0:
                     inicial1 = stackIniciales.pop()
                     inicial2 = stackIniciales.pop()
                     final1 = stackFinales.pop()
@@ -692,20 +695,13 @@ cierta posicion tal conjunto si posee un estado final de la lista de estados fin
 correspondiente dentro de la lista de newStates. Esto porque en la misma posicion del newState, esta el subconjunto
 que corresponde al subconjunto al cual posee algun estado Final. '''
 def newFinalStates2(subSets, newStates, listEstadosFinales):
-    theNewFinalStates = []
-    #print(type(estadoFinal))
-    cont = 0
-    #print(newStates)
-    #recorremos todos los subconjuntos por subconjuntos
-    for conjunto in subSets:
-        #tamamos un estado final de la lista de estados Finales
-        for estadoFinal in listEstadosFinales:  
-            #si este estado se encuentra dentro del conjunto se añade a la lista
-            # de nuewvos estados finales  
-            if estadoFinal in conjunto:
-                theNewFinalStates.append(newStates[cont])
-        cont += 1
-    return theNewFinalStates
+    #lista de lista correspondiente a cada token con su estado final.
+    listFinalStates = []
+    
+    #tomamos un estado final de la lista de estados Finales
+    for estadoFinal in listEstadosFinales:  
+        listFinalStates.append(newFinalStates1(subSets,newStates,estadoFinal))
+    return listFinalStates
 
 def newFinalStates1(subSets, newStates, estadoFinal):
     theNewFinalStates = []
