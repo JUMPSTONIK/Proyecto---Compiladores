@@ -126,15 +126,15 @@ def infijoAPosfix(expresion,alfabeto):
         expresionPosfix.append(pila.pop())
     return expresionPosfix
 
-def crearArbol(expresionPosfix, alfabeto, operadores):
+def crearArbol(expresionPosfix, alfabeto, operadores, listOfVals):
     pila = []
     for i in expresionPosfix:
         #print(i)
         if (i in alfabeto):
-            leaf = Clases.Node(i)
+            leaf = Clases.Node(i, listOfVals.pop(0))
             #print(i)
             pila.append(leaf)
-        elif (i in operadores and i != "*" and i != "+" and i != "?"):
+        elif (i in operadores and i != "*" and i != "?"):
             leaf = Clases.Node(i)
             L1 = pila.pop()
             #print(L1.v)
@@ -149,13 +149,18 @@ def crearArbol(expresionPosfix, alfabeto, operadores):
             #print(L1.v)
             leaf.insertLeft(L1)
             pila.append(leaf)
+    
     return pila.pop()
 
 def printTree(node, level=0):
     if node != None:
-        printTree(node.l, level + 1)
-        print(' ' * 4 * level + '->', node.v)
-        printTree(node.r, level + 1)
+        printTree(node.getLeftNode(), level + 1)
+        if node.v != None:
+            print(' ' * 4 * level + '->', "sim: " + node.s + " val: " + str(node.v))
+        else:
+            print(' ' * 4 * level + '->', "sim: " + node.s)
+        printTree(node.getRightNode(), level + 1)
+
 
 def Thompson(expresionPosfix, alfabeto, cont = 0):
     stackTransiciones = []

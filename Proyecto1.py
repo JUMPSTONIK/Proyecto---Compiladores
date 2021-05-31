@@ -31,11 +31,19 @@ while estadoDelWhile:
             Funciones1.printlist(expresion.split("<"))
         '''
         expresionPosfix = Funciones1.infijoAPosfix(expresion,alfabeto)
-        #print ("Notacion posfija: " + str(expresionPosfix))
-        #print("Ahora vamos a contruir el arbol binario")   
-        #Funciones.printTree(Funciones.crearArbol(expresionPosfix, alfabeto, operadores))
+        print ("Notacion posfija: " + str(expresionPosfix))
+        cont = 1
+        listOfVals = []
+        for simbolo in expresionPosfix:
+            if simbolo in alfabeto and simbolo != "ε":
+                listOfVals.append(cont)
+                cont += 1
+
+        print("Ahora vamos a contruir el arbol binario")   
+        Funciones1.printTree(Funciones1.crearArbol(expresionPosfix, alfabeto, operadores, listOfVals))
         #print("ahora formaremos el automata")
         
+        '''
         
         transiciones, estadoFinal, estadoInicial = Funciones1.Thompson(expresionPosfix, alfabeto)
         
@@ -86,12 +94,11 @@ while estadoDelWhile:
         print("¡Error! Ingrese una expresion regular valida.")
         estadoDelWhile = False
 
-
+'''
     #"ε"
     #dot -Tpng AFD.dot -o AFD.png 
     #dot -Tpng AFN.dot -o AFN.png
     '''
-    (b|b)*abb(a|b)*
     (ab)*|(c*)b
     (a|b)*abb(a|b)*
     (a*|b*)*
