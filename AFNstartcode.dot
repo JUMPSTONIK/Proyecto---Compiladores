@@ -1,4 +1,4 @@
 digraph G{
-q1897 -> q1898 [label="."]
-q1898 -> q1899 [label="("]
+q1959 -> q1960 [label="."]
+q1960 -> q1961 [label="("]
 }

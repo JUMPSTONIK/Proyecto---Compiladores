@@ -3,13 +3,14 @@ import re
 
 class Node:
     def __init__(self, sim, val = None):
-        self.parent = None
         self.leftNode = None
         self.rightNode = None
         self.leftList = []
-        self.rigthList = []
+        self.rightList = []
         self.s = sim
         self.v = val
+        #print(str(val) + str(sim))
+        self.setLists()
 
     def insertParent(self, p):
         self.parent = p
@@ -34,12 +35,48 @@ class Node:
     
     def getVal(self):
         return self.v
+    
+    def firstPos(self):
+        return self.leftList
 
-    def nullable(self):
-        if self.s == "ε" or self.s == "*" or self.s == "?":
+    def lastPos(self):
+        return self.rightList
+
+    def nullable(self, simbol):
+        if simbol == "ε" or simbol == "*" or simbol == "?":
             return True
         else:
             return False
+    
+    def setLists(self):
+        if self.getVal() != None:
+            self.leftList.append(self.getVal())
+            self.rightList.append(self.getVal())
+
+    def setfirstAndlast(self):
+        if self.getSimbol() == "|":
+            self.leftList = self.rightNode.firstPos() + self.leftNode.firstPos()
+            self.rightList = self.leftList
+        if self.getSimbol() == "*" or self.getSimbol() == "?":
+            self.leftList = self.rightNode.firstPos()
+            self.rightList = self.leftList
+        if self.getSimbol() == "ʚ":
+            if self.nullable(self.leftNode.getSimbol()):
+                self.rightList = self.rightNode.lastPos() + self.leftNode.firstPos()
+            else:
+                self.rightList = self.leftNode.firstPos()
+
+            if self.nullable(self.rightNode.getSimbol()):
+                self.leftList = self.rightNode.lastPos() + self.leftNode.lastPos()
+            else:
+                self.leftList = self.rightNode.firstPos()
+
+        
+
+
+
+
+
 
 
 #No recomiendo esto, pero en el Automata uno puede poner cualquier tipo de valor, pero casi todos

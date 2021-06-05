@@ -3,10 +3,11 @@ import Funciones2
 import Funciones1
 
 '''Estos son los textos de prueba'''
-Aritmetica = "Aritmetica"
-Hexnumber = "HexNumber"
+#Aritmetica = "Aritmetica"
+#Hexnumber = "HexNumber"
 Cocol = "CoCoL"
-Double = "Double"
+#Double = "Double"
+Double = "TheTestC#Double"
 #COCOr = Funciones2.getText(Aritmetica + ".ATG")
 #COCOr = Funciones2.getText(Hexnumber + ".ATG")
 COCOr = Funciones2.getText(Cocol + ".ATG")
@@ -79,6 +80,10 @@ if "string" in Tokkeys:
 #print(TOKENS)
 #print(file)
 
+#print("CHARACTERS: " + str(CHARACTERS) + "\n")
+#print("KEYWORDS: " + str(KEYWORDS)+ "\n")
+#print("TOKENS" + str(TOKENS)+ "\n")
+
 Funciones1.createFile("file", file, ".py")
 
 listExceptions, listOfAFN, listOfAFD = Funciones2.GeneradorDeAutomatas(Tokkeys,TOKENS)
@@ -117,46 +122,22 @@ SUPERAFD = Funciones2.CreateSuperAFD(superEstados, superAutomata, superAlfabeto,
 #print(str(SUPERAFD.transiciones))
 
 content = ""
-with open(Cocol + ".txt") as f:
+with open(Cocol + " .ATG") as f:
     content = f.read()
     print(str(content))
 
 
 
 #print(str(SUPERAFD.alfabeto))
-SUPERAFD.alfabeto.append("(")
-SUPERAFD.alfabeto.append(")")
-SUPERAFD.alfabeto.append('"')
+SUPERAFD = Funciones2.fixAlfabeth(SUPERAFD)
 listToken = Funciones1.getkeys(TOKENS)
 #print(str(listToken))
-listOfWordsInContent = []
-listOfTokenFromContent = []
+
 word = ""
 line = 0
 pos = 1
 
-for item in content:
-    #print("'" + item + "'")
-    if item != " " and item != "\n" and item != "\t":
-        if item in SUPERAFD.alfabeto:
-            word += item
-            pos += 1
-        else:
-            if item != " " and item != "\n" and item != "\t":
-                word += item
-                print("Se ha detectado un caracter no aceptable: " + str(item) + " En la posicion " + str(pos) + " linea " + str(line))
-                pos += 1
-    else:
-        #print("x"+word+"x")
-        if word != "":
-            #print(word)
-            listOfWordsInContent.append(word)
-            listOfTokenFromContent.append(Funciones2.getToken(SUPERAFD, listToken,listKeywords, word))
-            word = ""
-            print("El token de " + str(listOfWordsInContent[-1] + " es " + str(listOfTokenFromContent[-1])))
-    if(item == "\n"):
-        pos = 1
-        line += 1
+listOfWordsInContent, listOfTokenFromContent = Funciones2.Scanner(content, SUPERAFD, listToken, listKeywords)
 
 print(listOfWordsInContent)
 print(listOfTokenFromContent)

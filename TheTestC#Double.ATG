@@ -9,7 +9,9 @@ CHARACTERS
 digit = "0123456789" .
 tab = CHR(9).
 eol = CHR(10).
-blanco = eol+CHR(13)+tab+' '.
+cr = CHR(13).
+space = CHR(32).
+blanco = eol+cr+tab+space.
 
 KEYWORDS
 
@@ -24,37 +26,37 @@ white = blanco{blanco}.
 
 PRODUCTIONS
 
-Expr= {Stat ";"{white}}{white}".".
+Expr= {Stat ""{white}}{white}".".
 
-Stat = 							(.double value=0;.)
-	Expression<ref value>		(.System.Console.WriteLine("Resultado: {0}",value);.)
+Stat = 							(. value = 0.0 .)
+	Expression<float value>		(. print("Resultado: %d" , value) .)
 	.
 
-Expression<ref double result> =			(.double result1=0,result2=0;.)
-	Term<ref result1>
-	{    "+"Term<ref result2>		(.result1+=result2;.)
-	   | "-"Term<ref result2>		(.result1-=result2;.)
-	}								(.result=result1;.)
+Expression<int  result> =			(. result1 = 0.0 , result2 = 0.0 .)
+	Term<float result1>
+	{    "+" Term<float result2>		(. result1 += result2 .)
+	   | "-" Term<float result2>		(. result1 -= result2 .)
+	}								(. result = result1 .)
 	.
 
-Term<ref double result>=				(.double result1=0,result2=0;.)
-	Factor<ref result1>
-	{    "*"Factor<ref result2>	(.result1*=result2;.)
-	   | "/"Factor<ref result2>	(.result1/=result2;.)
-	}							(.result=result1;.)
+Term<int  result>=				(. result1 = 0 , result2 = 0 .)
+	Factor<float result1>
+	{    "*" Factor<float result2>	(. result1 *= result2 .)
+	   | "/" Factor<float result2>	(. result1 /= result2 .)
+	}							(. result = result1 .)
 	.
 
 
-Factor<ref double result> =		(.double sign=1;.)
-	["-"						(.sign = -1;.)
+Factor<int  result> =		(. sign = 1 .)
+	[ "-"						(. sign = -1 .)
 	]
-	(Number<ref result>
-	 |"("Expression<ref result>")"
-	)							(.result*=sign;.)
+	(Number<int result>
+	 | "(" Expression<int result> ")"
+	)							(. result *= sign .)
 	.
 
-Number<ref double result> =	
+Number<int  result> =	
 	(number				
-	|decnumber)(.result = double.Parse(LastToken.Value);.)
+	| decnumber) (. result = .Parse(LastToken.Value) .)
 	.
 END Double

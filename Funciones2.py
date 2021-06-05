@@ -313,8 +313,8 @@ def processAndConvert(TOKENS, Tokkeys, charkeys, file, CHARACTERS):
 
 
 def CreateAFN(expresion, name = "", cont = 0):
-    metaCaracteres = ["*","(",")","|","?","<"]
-    operadores = ["*","|","?","<"]
+    metaCaracteres = ["*","(",")","|","?","ʚ"]
+    operadores = ["*","|","?","ʚ"]
     alfabeto = []
     #recibimos la expresion para formar el alfabeto y la cadena para el posfix
     alfabeto, expresion = Funciones1.procesandoAlfabeto(expresion,alfabeto, metaCaracteres)
@@ -454,6 +454,8 @@ def aritmeticaScanner(TOKENS, SUPERAFD, content):
         estado = getTokenAri(SUPERAFD, estado, listToken)
 
 def getToken(SUPERAFD, listToken,listKeyWords, word):
+    #word = word.strip()
+    #print("'" + word + "'")
     token = ""
     cont = 0
     estado = SUPERAFD.estadoInicial
@@ -465,14 +467,16 @@ def getToken(SUPERAFD, listToken,listKeyWords, word):
         token =  "string"
     elif len(word) == 4 and word[0] == "'" and word[-1] == "'" and word[1] == "/" and ((ord(word[2]) >= 97 and ord(word[2]) <= 122) or (ord(word[2]) >= 65 and ord(word[2]) <= 90)):
         token =  "char"
+    elif word == "=" or word == "+" or word == "-" or word == "==" or word == "<=" or word == ">=" or word == "/" or word == "<" or word == ">" or word == "*":
+        token = "operador"
     else:
         for letter in word:
-            if letter != "(" and letter != ")":
+            if letter != "(" and letter != ")" and letter != "{" and letter != "}" and letter != "|":
                 #print(letter)
                 try:
                     estado = SUPERAFD.transiciones[str(estado)][letter]
                 except:
-                    #print(letter)
+                    print(letter + " error")
                     token = "ERROR"    
 
     if token == "":
@@ -482,9 +486,113 @@ def getToken(SUPERAFD, listToken,listKeyWords, word):
                 token = listToken[cont]
             cont += 1
 
-    if token == "ident":
+    if token == "ident" or token == "number":
         if word in listKeyWords:
             token = "keyword"
 
     return token
+
+def fixAlfabeth(SUPERAFD):
+    SUPERAFD.alfabeto.append("(")
+    SUPERAFD.alfabeto.append(")")
+    SUPERAFD.alfabeto.append("}")
+    SUPERAFD.alfabeto.append("{")
+    SUPERAFD.alfabeto.append("+")
+    SUPERAFD.alfabeto.append("-")
+    SUPERAFD.alfabeto.append("=")
+    SUPERAFD.alfabeto.append("[")
+    SUPERAFD.alfabeto.append("]")
+    SUPERAFD.alfabeto.append("<")
+    SUPERAFD.alfabeto.append(">")
+    SUPERAFD.alfabeto.append("|")
+    SUPERAFD.alfabeto.append('"')
+
+    return SUPERAFD
+
+def cleanWord(word):
+    word = word.replace("{"," ")
+    word = word.replace("}"," ")
+    word = word.replace("|"," ")
+    word = word.replace("["," ")
+    word = word.replace("]"," ")
+    return word
+
+def Scanner(content, SUPERAFD, listToken, listKeywords):
+    listOfWordsInContent = []
+    listOfTokenFromContent = []
+    word = ""
+    line = 0
+    pos = 1
+    for item in content:
+        #print("'" + item + "'")
+        if item != " " and item != "\n" and item != "\t" :
+            if item in SUPERAFD.alfabeto:
+                word += item
+                pos += 1
+            else:
+                if item != " " and item != "\n" and item != "\t":
+                    word += item
+                    print("Se ha detectado un caracter no aceptable: " + str(item) + " En la posicion " + str(pos) + " linea " + str(line))
+                    pos += 1
+        else:
+            #print("x"+word+"x")
+            if word != "":
+                #print(word)
+                if word[0] == '"' and word[-1] == '"':
+                    if word[1:-2].find('"') == -1:
+                        listOfWordsInContent.append(word)
+                        listOfTokenFromContent.append(getToken(SUPERAFD, listToken,listKeywords, word))
+                        #word = ""
+                        #print("El token de " + str(listOfWordsInContent[-1] + " es " + str(listOfTokenFromContent[-1])))
+                    else:
+                        word = cleanWord(word)
+                        word = word.replace('"',' " ')
+                        listOfwords = []
+                        listOfwords = word.split()
+                        newListOfWords = []
+                        #print(str(listOfwords))
+                        posi = 0
+                        while posi < len(listOfwords):
+                            if listOfwords[posi] == '"':
+                                #print(str(x))
+                                palabra = listOfwords[posi] + listOfwords[posi+1] +listOfwords[posi+2]
+                                #print(palabra)
+                                posi += 3
+                                newListOfWords.append(palabra)
+                            else:
+                                #print(listOfwords[posi])
+                                newListOfWords.append(listOfwords[posi])
+                                posi += 1 
+                        #print(str(newListOfWords))
+                        palabra = ""
+                        for palabra in newListOfWords:
+                            #print(palabra)
+                            listOfWordsInContent.append(palabra)
+                            listOfTokenFromContent.append(getToken(SUPERAFD, listToken,listKeywords, palabra))
+                            #print("El token de " + str(listOfWordsInContent[-1] + " es " + str(listOfTokenFromContent[-1])))
+
+                        
+                elif word.find("{") == -1 and word.find("}") == -1 and word.find("|") == -1:
+                    listOfWordsInContent.append(word)
+                    listOfTokenFromContent.append(getToken(SUPERAFD, listToken,listKeywords, word))
+                    #word = ""
+                    #print("El token de " + str(listOfWordsInContent[-1] + " es " + str(listOfTokenFromContent[-1])))
+                else:
+                    word = cleanWord(word)
+                    listOfwords = word.split()
+                    #print(str(listOfwords))
+
+                    for palabra in listOfwords:
+                        #print(palabra)
+                        listOfWordsInContent.append(palabra)
+                        listOfTokenFromContent.append(getToken(SUPERAFD, listToken,listKeywords, palabra))
+                        #print("El token de " + str(listOfWordsInContent[-1] + " es " + str(listOfTokenFromContent[-1])))
+
+            word = ""
+        if(item == "\n"):
+            pos = 1
+            line += 1
+
+    return listOfWordsInContent, listOfTokenFromContent
+
     

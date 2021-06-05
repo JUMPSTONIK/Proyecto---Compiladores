@@ -26,7 +26,7 @@ def procesandoAlfabeto(expresion,alfabeto, metaCaracteres):
             if((expresion[y] in alfabeto or expresion[y] == "+" or expresion[y] == "*" or expresion[y] == "?" or expresion[y] == ")") and (expresion[y+1] in alfabeto or expresion[y+1] == "(")):
                 parte1 = expresion[:y+1]
                 parte2 = expresion[y+1:]
-                expresion = parte1 + "<" +parte2
+                expresion = parte1 + "ʚ" +parte2
                 
                 #print(demo)
         except:
@@ -59,11 +59,11 @@ def Transformplus(expresion, alfabeto):
                     elif expresion[x] == "(":
                         stack.remove(")") 
                         #print(str(stack))
-                    elif expresion[x] == "|" or expresion[x] == "<":
+                    elif expresion[x] == "|" or expresion[x] == "ʚ":
                         if ")" not in stack:
                             corte2 = x
                             transform = expresion[corte2 +1: corte1 - 1]
-                            expresion = expresion[:corte2 + 1] + transform + "<" + transform + "*" + expresion[corte1:]
+                            expresion = expresion[:corte2 + 1] + transform + "ʚ" + transform + "*" + expresion[corte1:]
                             #print(str(expresion))
                             stack = []
                             break
@@ -71,7 +71,7 @@ def Transformplus(expresion, alfabeto):
                             stack.insert(0,expresion[x])
                 if len(stack) != 0:
                     transform = expresion[:corte1 -1]
-                    expresion = transform + "<" + transform + "*" + expresion[corte1:]
+                    expresion = transform + "ʚ" + transform + "*" + expresion[corte1:]
     return expresion
 """Esta es una funcion que sirve para poder mostrar una lista con todo su contenido concatenado"""
 def printlist(expresion):
@@ -79,6 +79,10 @@ def printlist(expresion):
     for item in expresion:
         regular += item
     print(regular)
+
+def printVerticallyList(lista):
+    for element in lista:
+        print(str(element))
 
 """Código para expresiones regulare de Infija a Postfija"""
 def infijoAPosfix(expresion,alfabeto):
@@ -97,20 +101,20 @@ def infijoAPosfix(expresion,alfabeto):
                     #pila.append(i)
                 else:
                     pila.append(i)
-            elif i == "<":
+            elif i == "ʚ":
             #print "len(pila)"
             #print len(pila)
                 while (pila[-1] == "+" or pila[-1] == "*" or pila[-1] == "?") :
                     expresionPosfix.append(pila.pop())
                     #print len(pila)
-                if (pila[-1] == "<"):
+                if (pila[-1] == "ʚ"):
                     expresionPosfix.append(i)
                 else:
                     pila.append(i)
             elif(i == "|"):
                 #print "len(pila)"
                 #print len(pila)
-                while (pila[-1] == "+" or pila[-1] == "*" or pila[-1] == "?" or pila[-1] == "<"):
+                while (pila[-1] == "+" or pila[-1] == "*" or pila[-1] == "?" or pila[-1] == "ʚ"):
                     expresionPosfix.append(pila.pop())
                     #print len(pila)
                 if (pila[-1] == "|"):
@@ -126,41 +130,203 @@ def infijoAPosfix(expresion,alfabeto):
         expresionPosfix.append(pila.pop())
     return expresionPosfix
 
+def valsOfSimbols(expresionPosfix, alfabeto):
+    cont = 1
+    listOfVals = []
+    for simbolo in expresionPosfix:
+            if simbolo in alfabeto and simbolo != "ε":
+                listOfVals.append(cont)
+                cont += 1
+    return listOfVals
+
 def crearArbol(expresionPosfix, alfabeto, operadores, listOfVals):
     pila = []
+    listConCat = []
     for i in expresionPosfix:
         #print(i)
         if (i in alfabeto):
-            leaf = Clases.Node(i, listOfVals.pop(0))
+            if i != "ε":
+                leaf = Clases.Node(i, listOfVals.pop(0))
+            else:
+                leaf = Clases.Node(i)
             #print(i)
             pila.append(leaf)
         elif (i in operadores and i != "*" and i != "?"):
             leaf = Clases.Node(i)
             L1 = pila.pop()
-            #print(L1.v)
             L2 = pila.pop()
-            #print(L2.v)
             leaf.insertLeft(L1)
             leaf.insertRight(L2)
+            leaf.setfirstAndlast()
+            if i == "ʚ":
+                listConCat.append(leaf)
+            # print("sim: " + L1.s  + " left: " + str(L1.firstPos()) + " right: " + str(L1.lastPos()))
+            # print("sim: " + leaf.s  + " left: " + str(leaf.firstPos()) + " right: " + str(leaf.lastPos()))
+            # print("sim: " + L2.s  + " left: " + str(L2.firstPos()) + " right: " + str(L2.lastPos()) + "\n")
+            
             pila.append(leaf)
-        elif( i == "*" or i == "+" or i == "?"):
+        elif( i == "*" or i == "?"):
             leaf = Clases.Node(i)
             L1 = pila.pop()
             #print(L1.v)
-            leaf.insertLeft(L1)
+            leaf.insertRight(L1)
+            leaf.setfirstAndlast()
             pila.append(leaf)
     
-    return pila.pop()
+    return pila.pop(), listConCat
 
 def printTree(node, level=0):
     if node != None:
+        #node.setfirstAndlast()
         printTree(node.getLeftNode(), level + 1)
         if node.v != None:
-            print(' ' * 4 * level + '->', "sim: " + node.s + " val: " + str(node.v))
+            print(' ' * 4 * level + '->', "sim: " + node.s + " val: " + str(node.v) + " left: " + str(node.firstPos()) + " right: " + str(node.lastPos()))
         else:
-            print(' ' * 4 * level + '->', "sim: " + node.s)
+            print(' ' * 4 * level + '->', "sim: " + node.s + " left: " + str(node.firstPos()) + " right: " + str(node.lastPos()))
         printTree(node.getRightNode(), level + 1)
 
+# def getFollowPosSet(posnode, ConCatList):
+#     FollowPosList = []
+#     return FollowPosList
+
+def getFollowposList(ConCatList):
+    FollowPosList = []
+    posnode = 0
+    while posnode < len(ConCatList):
+
+        cantidadDeElementosFirst = 0
+        cantidadDeElementosFirst = len(ConCatList[posnode].rightNode.lastPos())
+                
+        listToFollow = ConCatList[posnode].rightNode.lastPos()
+        #print(str(node.rightNode.lastPos()) + " this is right(lastPos) y la cantidad de elementos es: " + str(cantidadDeElementosFirst))
+
+        if ConCatList[posnode].rightNode.s == "*" or ConCatList[posnode].rightNode.s == "?" or ConCatList[posnode].rightNode.s == "|":
+            listToFollow = listToFollow + ConCatList[posnode].leftNode.lastPos()
+            #print(str(listToFollow))
+        elif ConCatList[posnode].rightNode.s == "ʚ" and (ConCatList[posnode].leftNode.s == "*" or ConCatList[posnode].leftNode.s == "?" or ConCatList[posnode].leftNode.s == "|"):
+            #print("cado concatenar y kleen")
+            #print(str(ConCatList[posnode+1].leftNode.firstPos()))
+            listToFollow =  ConCatList[posnode].leftNode.lastPos() + ConCatList[posnode+1].leftNode.firstPos()
+            #print(str(listToFollow) + " this")
+            cantidadDeElementosFirst = len(listToFollow)
+            posnode += 1
+            #print(str(cantidadDeElementosFirst) + "cantidad concat y kleen")
+        else:
+            listToFollow = ConCatList[posnode].leftNode.firstPos()
+            #print(str(listToFollow))
+            cantidadDeElementosFirst = len(listToFollow)
+                    
+        #print(ConCatList[posnode].getSimbol() + " with left: " + ConCatList[posnode].leftNode.getSimbol() + " and right: " + ConCatList[posnode].rightNode.getSimbol())
+
+        #print(cantidadDeElementosFirst)
+        #print("\n")
+        for x in range(0, cantidadDeElementosFirst):
+            #print(x)
+            #print(str(listToFollow))
+            
+            FollowPosList.append(listToFollow)
+
+            #print(listToFollow)
+
+        #FollowPosList += getFollowPosSet(posnode, ConCatList)
+        #print(FollowPosList)
+        posnode +=1
+    FollowPosList.append([])
+
+    return FollowPosList
+
+def followPos(item, listOfVals, FollowPosList):
+    index = listOfVals.index(item)
+    followposSet = FollowPosList[index]
+
+    return followposSet
+
+def getSimbols(estado, listOfVals, listOfsimbols):
+    simbols = []
+    for item in estado:
+        #print(str(item))
+        x = listOfVals.index(item)
+        
+        if listOfsimbols[x] not in simbols and listOfsimbols[x] != "#":
+            #print(x)
+            simbols.append(listOfsimbols[x])
+    return simbols
+
+def createDirectAFD(ConCatList, listOfVals, listOfsimbols, FollowPosList):
+    Transiciones = {}
+    Transiciones[str(ConCatList[-1].firstPos())] = {}
+    #print(str(Transiciones))
+    unMarkStack = []
+    unMarkStack.append(ConCatList[-1].firstPos())
+
+    while unMarkStack != []:
+        #print(str(unMarkStack) + "unmark")
+        estado = unMarkStack.pop(0)
+            
+        if len(estado) == 1:
+            #print(str(estado) + "  dd")
+            if estado != []:
+                Transiciones[str(estado)] = {}
+            index = listOfVals.index(estado[0])
+            trans = listOfsimbols[index]
+            #print(trans)
+            xEstado = FollowPosList[index]
+            #print(xEstado)
+            unMarkStack.append(xEstado)
+            Transiciones[str(estado)][trans] = str(xEstado)
+            #print(str(Transiciones))
+
+        else:
+            if estado != []:
+                Transiciones[str(estado)] = {}
+            #print(str(listOfVals) + "error aqui")
+            #print(str(estado))
+            simbolos = getSimbols(estado, listOfVals, listOfsimbols)
+            for sim in simbolos:
+                #print(sim)
+                estadoU = []
+                for item in estado:
+
+                    indexU = listOfVals.index(item)
+                    if listOfsimbols[indexU] == sim:
+                        #print("index: " + str(indexU))
+                        #print("followlist: " + str(FollowPosList[indexU]))
+                        #print(sim)
+                            
+                        estadoU += followPos(item,listOfVals, FollowPosList)
+                        #print(str(estadoU))
+                        #print(str(estadoU) not in Transiciones[str(estado)].values() and sim not in Transiciones[str(estado)] == None)
+                        #print(str(Transiciones[str(estado)].values()))
+                        #print(str(Transiciones[str(estado)].has_key(sim)))
+                        #print(str(estadoU) not in Transiciones[str(estado)].values())
+                        #print(sim not in Transiciones[str(estado)].keys())
+                        #print(Transiciones[str(estado)].get(sim))
+                        #if str(estadoU) not in Transiciones[str(estado)].values() and sim not in Transiciones[str(estado)] != None:
+                if  Transiciones[str(estado)].get(sim) == None:
+                    #print("True")
+                    Transiciones[str(estado)][sim] = str(estadoU)
+                    #print(str(estadoU))
+                    #print(str(Transiciones.keys()))
+                    if str(estadoU) not in Transiciones:
+                        #print("si entre")
+                        unMarkStack.append(estadoU)
+                else:
+                    #print("False")
+                    pass
+    
+                    #print(str(estadoU))
+    
+    return Transiciones
+                        
+
+
+def printDirectTable(listSimbols, listPosition, listFollowPos):
+    # print(len(listSimbols))
+    # print(len(listPosition))
+    # print(len(listFollowPos))
+
+    for x in range(0,len(listFollowPos)):
+        print(str(listSimbols[x] + "   " + str(listPosition[x]) + "   " + str(listFollowPos[x])))
 
 def Thompson(expresionPosfix, alfabeto, cont = 0):
     stackTransiciones = []
@@ -235,7 +401,7 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
                     stackFinales.append(stackNewNodos[-1])
                     stackNewNodos = []
 
-            if caracter == "<":
+            if caracter == "ʚ":
                 if len(stackTransiciones) >= 2:
                     transicion1 = stackTransiciones.pop()
                     transicion2 = stackTransiciones.pop()
@@ -367,6 +533,7 @@ def Thompson(expresionPosfix, alfabeto, cont = 0):
 
 def crearGrafoDelAutomata(Transiciones, name,estadosFinales):
     Grafo = "digraph G{\n"
+    #print(str(estadosFinales))
     for key in Transiciones:
         #print(key)
         #print(Transiciones[key])
@@ -375,6 +542,30 @@ def crearGrafoDelAutomata(Transiciones, name,estadosFinales):
             
             if key in estadosFinales and str(name) == "AFD" and str(key) + " [ style=bold ]" not in Grafo:
                 graph += str(key) + " [ style=bold ]\n"
+            
+            #print(innerKey)
+            #print(Transiciones[key][innerKey])
+            Grafo = str(Grafo) + str(graph)
+    #print(str(name))
+    if str(name) == "AFN":
+        #print("aaaaaaaaaa")
+        Grafo += str(estadosFinales) + " [ style=bold ]\n"
+    Grafo = str(Grafo) + "}"
+    #print(Grafo)
+    createFile(name,Grafo, ".dot")
+    return Grafo
+
+def crearGrafoDFA(Transiciones, name,estadosFinales, traductor):
+    Grafo = "digraph G{\n"
+    #print(str(estadosFinales))
+    for key in Transiciones:
+        #print(key)
+        #print(Transiciones[key])
+        for innerKey in Transiciones[key]:
+            graph = str(traductor[key]) + " -> " + str(traductor[Transiciones[key][innerKey]]) + " [label=" + '"' + str(innerKey) + '"'  + "]\n"
+            
+            if key in estadosFinales and str(name) == "AFD" and str(key) + " [ style=bold ]" not in Grafo:
+                graph += str(traductor[key]) + " [ style=bold ]\n"
             
             #print(innerKey)
             #print(Transiciones[key][innerKey])
@@ -760,6 +951,6 @@ def Simulation(newEstadoInicial, newTransitions, cadena, newEstadosFinales):
                 #print(str(estado))
     #print(newEstadosFinales)
     if str(estado) in newEstadosFinales:
-        return "La cadena ha sido aceptada"
+        return "La cadena ha sido aceptada\n"
     else:
-        return "la cadena no fue aceptada"
+        return "la cadena no fue aceptada\n"
